@@ -4,8 +4,6 @@
 
 <br>
 
-# StreamHub
-
 ### Free Live TV Streaming -- 140+ Countries, Zero Cost
 
 <br>
