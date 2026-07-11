@@ -251,6 +251,16 @@ class StreamHubHandler(BaseHTTPRequestHandler):
                 self.send_json({"status": "ok"})
                 return
 
+            elif action == "reset_passcode":
+                # Reset passcode after failed attempts (forgot passcode)
+                new_pass = data.get("new_passcode", "")
+                if len(new_pass) < 1:
+                    self.send_json({"status": "error", "message": "Passcode cannot be empty"}, 400)
+                    return
+                self.db.set_passcode(new_pass)
+                self.send_json({"status": "ok", "authenticated": True})
+                return
+
             self.send_json({"error": "Unknown action"}, 400)
             return
 

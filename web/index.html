@@ -396,6 +396,7 @@ var _authenticated=false;
 })();
 
 /* Verify passcode */
+var _failCount=0;
 function verifyPasscode(){
   var inp=document.getElementById('poInp');
   var err=document.getElementById('poErr');
@@ -406,20 +407,70 @@ function verifyPasscode(){
   .then(function(d){
     if(d.authenticated){
       _authenticated=true;
+      _failCount=0;
       sessionStorage.setItem('sh_auth','1');
       document.getElementById('poOverlay').classList.add('poOverlay--h');
       inp.value='';
       err.textContent='';
       loadProfile();
     }else{
-      err.textContent='Incorrect passcode';
-      inp.classList.add('poCard__inp--err');
+      _failCount++;
       inp.value='';
+      inp.classList.add('poCard__inp--err');
       setTimeout(function(){inp.classList.remove('poCard__inp--err')},400);
+      if(_failCount>=3){
+        showResetForm();
+      }else{
+        var rem=3-_failCount;
+        err.textContent='Incorrect passcode ('+rem+' attempt'+(rem>1?'s':'')+' left)';
+      }
     }
   }).catch(function(){err.textContent='Connection error. Try again.'});
 }
 document.getElementById('poInp').addEventListener('keydown',function(e){if(e.key==='Enter')verifyPasscode()});
+
+/* Forgot passcode - show reset form */
+function showResetForm(){
+  var card=document.querySelector('.poCard');
+  card.innerHTML='<svg class="poCard__mk" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="10" fill="url(#lR)"/><path d="M10 28L18 12H24L16 28H10Z" fill="#080a0f"/><path d="M18 28L26 12H32L24 28H18Z" fill="#080a0f" opacity=".45"/><defs><linearGradient id="lR" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#00e5c8"/><stop offset="1" stop-color="#006b5e"/></linearGradient></defs></svg>'
+    +'<div class="poCard__t">Forgot Passcode?</div>'
+    +'<div class="poCard__s">Set a new passcode to regain access</div>'
+    +'<input type="password" class="poCard__inp" id="rNewPass" placeholder="New passcode" maxlength="32" autocomplete="off">'
+    +'<div style="height:10px"></div>'
+    +'<input type="password" class="poCard__inp" id="rConfPass" placeholder="Confirm passcode" maxlength="32" autocomplete="off">'
+    +'<div class="poCard__err" id="rErr"></div>'
+    +'<button class="poCard__btn" id="rBtn" onclick="resetPasscode()">Reset Passcode</button>';
+  document.getElementById('rNewPass').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('rConfPass').focus()});
+  document.getElementById('rConfPass').addEventListener('keydown',function(e){if(e.key==='Enter')resetPasscode()});
+}
+
+/* Reset passcode via forgot flow */
+function resetPasscode(){
+  var np=document.getElementById('rNewPass');
+  var cp=document.getElementById('rConfPass');
+  var errEl=document.getElementById('rErr');
+  var newP=np.value.trim();
+  var confP=cp.value.trim();
+  if(!newP||!confP){errEl.textContent='Fill in both fields';return}
+  if(newP.length<4){errEl.textContent='Passcode must be at least 4 characters';return}
+  if(newP!==confP){errEl.textContent='Passcodes do not match';return}
+  if(/^([\s\S])\1+$/.test(newP)){errEl.textContent='Cannot be all repeated characters';return}
+  var str=passStrength(newP);
+  if(str.score<=1){errEl.textContent='Passcode is too weak. Use a mix of letters, numbers, and symbols';return}
+  fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reset_passcode',new_passcode:newP})})
+  .then(function(r){return r.json()})
+  .then(function(d){
+    if(d.authenticated){
+      _authenticated=true;
+      _failCount=0;
+      sessionStorage.setItem('sh_auth','1');
+      document.getElementById('poOverlay').classList.add('poOverlay--h');
+      loadProfile();
+    }else{
+      errEl.textContent=d.message||'Failed to reset passcode';
+    }
+  }).catch(function(){errEl.textContent='Connection error'});
+}
 
 /* Load profile from API */
 function loadProfile(){

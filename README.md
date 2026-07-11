@@ -127,6 +127,7 @@ If any command fails, go back to the correct OS section above and run the instal
 | StreamHub server won't start | Run `streamhub --stop` then try again |
 | Port 8080 already in use | Run `streamhub --stop` to kill the old process |
 | Browser doesn't open | Copy the URL from terminal and open manually |
+| Forgot passcode | Enter wrong passcode 3 times -- a reset form will appear to set a new one |
 
 ---
 
@@ -371,6 +372,7 @@ The local server exposes these endpoints:
 - Cast to Smart TV (Chromecast + Presentation API)
 - Auto-skip failed streams
 - Landscape fullscreen mode (video fills entire screen)
+- Forgot Passcode reset (after 3 failed attempts, prompt to create new passcode)
 - Passcode strength indicator (Weak/Fair/Strong)
 - Passcode validation (repeated chars, username similarity)
 
