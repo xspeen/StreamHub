@@ -33,6 +33,105 @@ No account required. No subscription. No ads.
 
 ---
 
+## First-Time Setup (Run This First)
+
+Before installing StreamHub, make sure **git** and **Python 3** are installed. Run the commands below for your OS first.
+
+### Linux (Debian / Ubuntu / Kali / Parrot / Mint)
+
+```bash
+sudo apt update && sudo apt upgrade -y && sudo apt install -y git python3 curl
+```
+
+### Linux (Fedora)
+
+```bash
+sudo dnf upgrade -y && sudo dnf install -y git python3 curl
+```
+
+### Linux (Arch / Manjaro)
+
+```bash
+sudo pacman -Syu && sudo pacman -S --needed git python curl
+```
+
+### Linux (CentOS / RHEL / AlmaLinux)
+
+```bash
+sudo yum update -y && sudo yum install -y git python3 curl
+```
+
+### Linux (openSUSE / Leap)
+
+```bash
+sudo zypper refresh && sudo zypper update -y && sudo zypper install -y git python3 curl
+```
+
+### macOS
+
+```bash
+xcode-select --install && brew update && brew install git python3 curl
+```
+
+If Homebrew is not installed, install it first:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+### Android (Termux)
+
+```bash
+pkg update -y && pkg upgrade -y && pkg install -y git python curl
+```
+
+### Windows (Git Bash)
+
+```bash
+pacman -Syu && pacman -S --needed git python curl
+```
+
+### Windows (CMD / PowerShell)
+
+Git: download from [git-scm.com](https://git-scm.com/download/win) and install.
+
+Python: download from [python.org](https://python.org/downloads) and install. **Check "Add Python to PATH"** during install.
+
+---
+
+### Verify Installation
+
+Run these commands to confirm everything is installed correctly:
+
+```bash
+git --version
+python3 --version
+curl --version
+```
+
+If any command fails, go back to the correct OS section above and run the install command again.
+
+---
+
+### Common Errors & Fixes
+
+| Error | Fix |
+|-------|-----|
+| `git: command not found` | Run the install command for your OS above to install git |
+| `python3: command not found` | Run the install command for your OS above to install Python 3 |
+| `python3: not found` (Windows) | Reinstall Python from python.org, check "Add Python to PATH" |
+| `curl: command not found` | Run the install command for your OS above to install curl |
+| `Permission denied` (Linux/macOS) | Prefix the command with `sudo` |
+| `E: Unable to locate package` | Run `sudo apt update` first (Debian/Ubuntu) |
+| `Unable to locate python3` | Try `python --version` instead; some systems use `python` |
+| `pip: command not found` | Run `sudo apt install python3-pip` (Linux) or `brew install pipx` (macOS) |
+| `command not found: streamhub` | Run `source ~/.bashrc` or restart your terminal |
+| StreamHub server won't start | Run `streamhub --stop` then try again |
+| Port 8080 already in use | Run `streamhub --stop` to kill the old process |
+| Browser doesn't open | Copy the URL from terminal and open manually |
+
+---
+
 ## Features
 
 | Feature | Description |
@@ -92,8 +191,11 @@ Same as the Linux command above.
 
 ### Prerequisites
 
-- **Python 3.7 or higher** -- required. Install from [python.org](https://python.org) or your package manager.
-- **curl or wget** -- used by the installer to download files. Most systems have this pre-installed.
+- **Python 3.7 or higher** -- required
+- **git** -- required for updates
+- **curl or wget** -- used by the installer
+
+If any are missing, run the **First-Time Setup** commands above.
 
 The installer will:
 1. Detect your operating system and architecture
