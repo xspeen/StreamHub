@@ -8,7 +8,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/Version-2.0.2-00e5c8?style=for-the-badge&labelColor=0e1118)](#)
+[![Version](https://img.shields.io/badge/Version-2.0.5-00e5c8?style=for-the-badge&labelColor=0e1118)](#)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge&labelColor=0e1118)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.7+-yellow?style=for-the-badge&logo=python&logoColor=white&labelColor=0e1118)](#prerequisites)
 [![Platform](https://img.shields.io/badge/Platform-Linux_%7C_macOS_%7C_Windows_%7C_Android-00e5c8?style=for-the-badge&labelColor=0e1118)](#installation)
@@ -365,9 +365,10 @@ The local server exposes these endpoints:
 
 ## Changelog
 
-### v2.0.2 -- Latest
+### v2.0.5 -- Latest
 
 **New Features:**
+- Auto-update prompt on launch (checks GitHub for newer version, offers update or skip)
 - Profile photo upload from gallery/camera
 - Cast to Smart TV (Chromecast + Presentation API)
 - Auto-skip failed streams
@@ -414,7 +415,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 <div align="center">
 
-**StreamHub v2.0.2**
+**StreamHub v2.0.5**
 
 Built with care. Free forever.
 

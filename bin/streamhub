@@ -73,7 +73,8 @@ show_live() {
 }
 
 # ---- Version ----
-VERSION="2.0.2"
+VERSION="2.0.5"
+GITHUB_REPO="xspeen/StreamHub"
 
 # ---- Help ----
 show_help() {
@@ -345,6 +346,69 @@ reset_profile() {
     fi
 }
 
+# ---- Check for updates ----
+check_for_updates() {
+    local remote_version=""
+    # Fetch latest version from GitHub
+    if command -v curl >/dev/null 2>&1; then
+        remote_version=$(curl -sSL --max-time 5 "https://raw.githubusercontent.com/$GITHUB_REPO/main/VERSION" 2>/dev/null | tr -d '[:space:]')
+    elif command -v wget >/dev/null 2>&1; then
+        remote_version=$(wget -qO- --timeout=5 "https://raw.githubusercontent.com/$GITHUB_REPO/main/VERSION" 2>/dev/null | tr -d '[:space:]')
+    fi
+
+    # If we couldn't fetch, just continue silently
+    if [ -z "$remote_version" ]; then
+        return 0
+    fi
+
+    # Compare versions
+    if [ "$remote_version" = "$VERSION" ]; then
+        return 0
+    fi
+
+    # New version available - prompt user
+    echo ""
+    echo -e "  ${CYAN}A new version of StreamHub is available!${NC}"
+    echo -e "  ${WHITE}Current:${NC} v${VERSION}"
+    echo -e "  ${WHITE}Latest:${NC}  ${GREEN}v${remote_version}${NC}"
+    echo ""
+    echo -e "  ${DIM}Press Enter to update, or type 'skip' to continue with current version${NC}"
+    echo ""
+    read -r -p "  > " choice
+
+    if [ "$choice" = "skip" ] || [ "$choice" = "Skip" ] || [ "$choice" = "SKIP" ]; then
+        echo -e "  ${DIM}Skipping update. Continuing with v${VERSION}...${NC}"
+        echo ""
+        return 0
+    fi
+
+    # Perform the update
+    echo ""
+    echo -e "  ${CYAN}Updating StreamHub to v${remote_version}...${NC}"
+    echo ""
+
+    local install_sh
+    install_sh=$(mktemp)
+    if command -v curl >/dev/null 2>&1; then
+        curl -sSL -o "$install_sh" "https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh"
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q -O "$install_sh" "https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh"
+    else
+        echo -e "  ${RED}[ERROR] Neither curl nor wget found.${NC}"
+        return 1
+    fi
+    chmod +x "$install_sh"
+    bash "$install_sh"
+    rm -f "$install_sh"
+
+    # Show success
+    echo ""
+    echo -e "  ${GREEN}StreamHub updated successfully to v${remote_version}!${NC}"
+    echo -e "  ${GREEN}Run 'streamhub' to start the latest version.${NC}"
+    echo ""
+    exit 0
+}
+
 # ---- Update ----
 do_update() {
     echo ""
@@ -555,6 +619,9 @@ main() {
             exit 0
             ;;
         "")
+            # Check for updates before launching
+            check_for_updates
+
             # Check for existing profile
             if [ -f "$DATA_DIR/profile.json" ]; then
                 subsequent_run "$py"
