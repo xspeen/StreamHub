@@ -1,20 +1,10 @@
 <div align="center">
 
-<svg viewBox="0 0 120 120" fill="none" width="120" height="120">
-  <rect width="120" height="120" rx="28" fill="url(#logoGrad)"/>
-  <path d="M30 84L54 36H66L42 84H30Z" fill="#080a0f"/>
-  <path d="M54 84L78 36H90L66 84H54Z" fill="#080a0f" opacity=".45"/>
-  <defs>
-    <linearGradient id="logoGrad" x1="0" y1="0" x2="120" y2="120">
-      <stop stop-color="#00e5c8"/>
-      <stop offset="1" stop-color="#006b5e"/>
-    </linearGradient>
-  </defs>
-</svg>
+<img src="https://img.shields.io/badge/-StreamHub-00e5c8?style=for-the-badge&logo=television&logoColor=white&labelColor=080a0f" alt="StreamHub Logo" width="200">
 
 <br>
 
-# **StreamHub**
+# StreamHub
 
 ### Free Live TV Streaming -- 140+ Countries, Zero Cost
 
@@ -23,13 +13,15 @@
 [![Version](https://img.shields.io/badge/Version-2.0.2-00e5c8?style=for-the-badge&labelColor=0e1118)](#)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge&labelColor=0e1118)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.7+-yellow?style=for-the-badge&logo=python&logoColor=white&labelColor=0e1118)](#prerequisites)
+[![Platform](https://img.shields.io/badge/Platform-Linux_%7C_macOS_%7C_Windows_%7C_Android-00e5c8?style=for-the-badge&labelColor=0e1118)](#installation)
 
 <br>
 
 <img src="https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black" alt="Linux"> &nbsp;
 <img src="https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white" alt="macOS"> &nbsp;
 <img src="https://img.shields.io/badge/Windows-0078D4?style=flat&logo=windows&logoColor=white" alt="Windows"> &nbsp;
-<img src="https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white" alt="Android"> &nbsp;
+<img src="https://img.shields.io/badge/Android_Termux-3DDC84?style=flat&logo=android&logoColor=white" alt="Android"> &nbsp;
+<img src="https://img.shields.io/badge/WSL-555555?style=flat&logo=windows-subsystem-for-linux&logoColor=white" alt="WSL"> &nbsp;
 
 </div>
 
@@ -48,6 +40,8 @@ No account required. No subscription. No ads.
 | **140+ Countries** | Channel sources from every continent -- Africa, Europe, Asia, Americas, Middle East, Oceania |
 | **DStv / GOtv** | Aggregated African channel sources in a single tab |
 | **HLS Streaming** | Adaptive bitrate via hls.js -- buffers fast, plays smooth |
+| **Auto-Skip** | Failed streams automatically skip to the next channel -- no more "stream not available" |
+| **Screen Cast** | Cast live TV to any Smart TV on your network via Chromecast or Presentation API |
 | **Profile System** | Local admin passcode, display name, and photo/avatar -- all stored on your device |
 | **Photo Upload** | Set a real photo from your gallery as your profile picture |
 | **Passcode Security** | Strength validation, repeated character detection, username similarity check |
@@ -57,6 +51,7 @@ No account required. No subscription. No ads.
 | **Keyboard Shortcuts** | Space (play/pause), Arrows (next/prev), F (fullscreen), M (mute) |
 | **PiP Mode** | Picture-in-Picture support on compatible browsers |
 | **Swipe Navigation** | Touch-friendly channel switching on mobile |
+| **Landscape Fullscreen** | Tilt your phone -- video fills the entire screen with no black bars |
 | **Zero Dependencies** | Python 3.7+ standard library only -- no pip install, no Node.js, no Docker |
 | **Offline Cache** | Channel data cached locally for 6 hours to minimize re-fetching |
 
@@ -117,7 +112,9 @@ The installer will:
 streamhub
 ```
 
-On first launch, you will be prompted to create an admin passcode and display name. On subsequent launches, you will see a welcome message, a fresh terminal session with the StreamHub banner, and the server starts automatically. Your default browser opens with the streaming interface.
+On first launch, you will be prompted to create an admin passcode and display name. On subsequent launches, the server starts automatically and your default browser opens with the streaming interface.
+
+The server detects your machine's IP address (WiFi, mobile data, or Ethernet) and opens the browser at `http://your-ip:8080`.
 
 ### Commands
 
@@ -140,6 +137,51 @@ On first launch, you will be prompted to create an admin passcode and display na
 | `F` | Toggle fullscreen |
 | `M` | Toggle mute |
 | `Esc` | Exit fullscreen |
+
+---
+
+## Screen Cast to Smart TV
+
+StreamHub supports casting live TV to any Smart TV on your network.
+
+**How it works:**
+1. Make sure your phone/computer and TV are on the same WiFi network
+2. Play a channel in StreamHub
+3. Click the TV icon (cast button) in the player controls
+4. Select your TV from the list of available devices
+5. The stream will start playing on your TV
+
+**Supported devices:**
+- Chromecast (1st gen and newer)
+- Android Smart TVs with built-in Chromecast
+- Samsung, LG, Sony, and other TVs with screen mirroring
+- Any device that supports the Presentation API
+
+---
+
+## Auto-Skip & Error Handling
+
+StreamHub automatically handles stream failures so you never see "stream not available" screens:
+
+- **Auto-skip**: If a stream fails to load, StreamHub automatically moves to the next channel
+- **Retry logic**: HLS errors are retried up to 3 times before skipping
+- **Minimal errors**: Failed streams show a brief "Skipping..." spinner (800ms) then move on
+- **No manual intervention**: You don't need to click any buttons -- it just works
+
+---
+
+## Landscape & Fullscreen Mode
+
+When you tilt your phone to landscape:
+
+- **Video fills the entire screen** -- no black bars, no letterboxing
+- **UI hides automatically** -- header, sidebar, and controls disappear
+- **Controls accessible** -- tap the screen to show controls, they auto-hide after 3 seconds
+- **Fullscreen mode** -- press F or click the expand icon for true fullscreen
+
+On small screens (< 500px height in landscape):
+- The video takes up the entire viewport
+- All UI elements are hidden for an immersive experience
 
 ---
 
@@ -166,7 +208,7 @@ StreamHub uses a local passcode to protect access to the web interface. The pass
 - All profile data (name, photo, passcode hash) is stored locally on your device in `~/.streamhub/data/`
 - No data is sent to external servers
 - Profile photos are stored as compressed base64 data (max 200x200px, JPEG quality 70%)
-- The server only listens on `127.0.0.1` (localhost) -- it is not accessible from the network
+- The server only listens on your local network interface
 
 ---
 
@@ -217,6 +259,31 @@ The local server exposes these endpoints:
 ![South Africa](https://flagcdn.com/24x18/za.png) ![Nigeria](https://flagcdn.com/24x18/ng.png) ![Kenya](https://flagcdn.com/24x18/ke.png) ![Ghana](https://flagcdn.com/24x18/gh.png) ![Ethiopia](https://flagcdn.com/24x18/et.png) ![UK](https://flagcdn.com/24x18/gb.png) ![Germany](https://flagcdn.com/24x18/de.png) ![France](https://flagcdn.com/24x18/fr.png) ![Italy](https://flagcdn.com/24x18/it.png) ![Spain](https://flagcdn.com/24x18/es.png) ![Portugal](https://flagcdn.com/24x18/pt.png) ![USA](https://flagcdn.com/24x18/us.png) ![Canada](https://flagcdn.com/24x18/ca.png) ![Brazil](https://flagcdn.com/24x18/br.png) ![Mexico](https://flagcdn.com/24x18/mx.png) ![India](https://flagcdn.com/24x18/in.png) ![Japan](https://flagcdn.com/24x18/jp.png) ![South Korea](https://flagcdn.com/24x18/kr.png) ![China](https://flagcdn.com/24x18/cn.png) ![Turkey](https://flagcdn.com/24x18/tr.png) ![Saudi Arabia](https://flagcdn.com/24x18/sa.png) ![UAE](https://flagcdn.com/24x18/ae.png) ![Australia](https://flagcdn.com/24x18/au.png) ![New Zealand](https://flagcdn.com/24x18/nz.png)
 
 </div>
+
+---
+
+## Changelog
+
+### v2.0.2 -- Latest
+
+**New Features:**
+- Profile photo upload from gallery/camera
+- Cast to Smart TV (Chromecast + Presentation API)
+- Auto-skip failed streams
+- Landscape fullscreen mode (video fills entire screen)
+- Passcode strength indicator (Weak/Fair/Strong)
+- Passcode validation (repeated chars, username similarity)
+
+**Improvements:**
+- IP detection works on all platforms (9 detection methods)
+- Browser auto-opens on all platforms (Termux, macOS, Windows, Linux)
+- Error overlay is minimal -- shows "Skipping..." spinner, auto-dismisses
+- Failed streams auto-advance to next channel
+- Fullscreen mode properly scales video to fill viewport
+
+### v1.0.0
+
+Initial release with channel browsing, HLS playback, profile system, and cross-platform installer.
 
 ---
 
