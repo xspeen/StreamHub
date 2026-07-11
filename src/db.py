@@ -77,7 +77,7 @@ class StreamHubDB:
                     return json.load(f)
             except (json.JSONDecodeError, IOError):
                 pass
-        now = datetime.datetime.utcnow().isoformat() + "Z"
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
         return {
             "name": "User",
             "avatar": "U",
@@ -93,7 +93,7 @@ class StreamHubDB:
     def update_login(self):
         """Update last_login timestamp."""
         profile = self.get_profile()
-        profile["last_login"] = datetime.datetime.utcnow().isoformat() + "Z"
+        profile["last_login"] = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
         self.save_profile(profile)
 
     # ---- Channel cache operations ----
@@ -108,7 +108,7 @@ class StreamHubDB:
             cached_at = cache.get("timestamp", "")
             if cached_at:
                 cache_time = datetime.datetime.fromisoformat(cached_at.rstrip("Z"))
-                now = datetime.datetime.utcnow()
+                now = datetime.datetime.now(datetime.timezone.utc)
                 diff = (now - cache_time).total_seconds()
                 if diff < 21600:  # 6 hours
                     return cache.get("channels", {})
@@ -119,7 +119,7 @@ class StreamHubDB:
     def save_channel_cache(self, channels_by_category):
         """Save channels cache with current timestamp."""
         cache = {
-            "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
             "channels": channels_by_category
         }
         with open(self.cache_path, "w") as f:

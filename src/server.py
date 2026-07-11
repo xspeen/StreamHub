@@ -193,7 +193,7 @@ class StreamHubHandler(BaseHTTPRequestHandler):
                 profile["name"] = str(data["name"])[:50]
             if "avatar" in data:
                 profile["avatar"] = str(data["avatar"])[:5]
-            profile["last_login"] = datetime.datetime.utcnow().isoformat() + "Z"
+            profile["last_login"] = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
 
             self.db.save_profile(profile)
             self.send_json({"status": "ok", "profile": profile})
