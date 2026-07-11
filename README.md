@@ -372,6 +372,7 @@ The local server exposes these endpoints:
 - Cast to Smart TV (Chromecast + Presentation API)
 - Auto-skip failed streams
 - Landscape fullscreen mode (video fills entire screen)
+- Logout button (locks the interface, requires passcode to re-enter)
 - Forgot Passcode reset (after 3 failed attempts, prompt to create new passcode)
 - Passcode strength indicator (Weak/Fair/Strong)
 - Passcode validation (repeated chars, username similarity)
