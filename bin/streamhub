@@ -161,33 +161,93 @@ find_port() {
     return 0
 }
 
-# ---- Get machine local IP ----
+# ---- Get machine local IP (works on Linux, macOS, Termux, WSL, Git Bash) ----
 get_local_ip() {
     local ip=""
-    # Try common methods to get the local network IP
-    if command -v ip >/dev/null 2>&1; then
-        ip=$(ip route get 1 2>/dev/null | awk '{print $7; exit}')
+
+    # Method 1: Try connecting to an external IP to find our interface IP
+    # This works on almost every platform including Termux
+    if command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; then
+        local py_cmd="python3"
+        command -v python3 >/dev/null 2>&1 || py_cmd="python"
+        ip=$("$py_cmd" -c "
+import socket
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('8.8.8.8', 80))
+    print(s.getsockname()[0])
+    s.close()
+except:
+    pass
+" 2>/dev/null)
     fi
+
+    # Method 2: ip route (Linux, Termux with root or certain configs)
+    if [ -z "$ip" ] && command -v ip >/dev/null 2>&1; then
+        ip=$(ip route get 8.8.8.8 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1); exit}')
+    fi
+
+    # Method 3: ifconfig (Linux, macOS, some Termux)
     if [ -z "$ip" ] && command -v ifconfig >/dev/null 2>&1; then
         ip=$(ifconfig 2>/dev/null | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}' | head -1)
     fi
+
+    # Method 4: ip addr show (pick first non-loopback inet addr)
+    if [ -z "$ip" ] && command -v ip >/dev/null 2>&1; then
+        ip=$(ip -4 addr show 2>/dev/null | grep -oE 'inet ([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -1 | awk '{print $2}')
+    fi
+
+    # Method 5: hostname -I (many Linux distros)
     if [ -z "$ip" ]; then
         ip=$(hostname -I 2>/dev/null | awk '{print $1}')
     fi
+
+    # Method 6: scutil (macOS)
+    if [ -z "$ip" ] && command -v scutil >/dev/null 2>&1; then
+        ip=$(scutil --nwi 2>/dev/null | grep "address" | grep -oE '([0-9]*\.){3}[0-9]*' | head -1)
+    fi
+
+    # Method 7: PowerShell (Windows Git Bash)
+    if [ -z "$ip" ] && command -v powershell.exe >/dev/null 2>&1; then
+        ip=$(powershell.exe -Command "Get-NetIPAddress -AddressFamily IPv4 | Where-Object {\$_.InterfaceAlias -notlike '*Loopback*' -and \$_.IPAddress -ne '127.0.0.1'} | Select-Object -First 1 -ExpandProperty IPAddress" 2>/dev/null | tr -d '\r')
+    fi
+
+    # Method 8: Termux-specific - get WiFi IP from dumpsys
+    if [ -z "$ip" ] && command -v dumpsys >/dev/null 2>&1; then
+        ip=$(dumpsys connectivity 2>/dev/null | grep -oE 'LinkAddress.*([0-9]*\.){3}[0-9]*' | grep -oE '([0-9]*\.){3}[0-9]*' | head -1)
+    fi
+
+    # Method 9: Termux - parse ip addr for wlan0 or rmnet
+    if [ -z "$ip" ] && command -v ip >/dev/null 2>&1; then
+        for iface in wlan0 rmnet_data0 eth0; do
+            ip=$(ip addr show "$iface" 2>/dev/null | grep -oE 'inet ([0-9]*\.){3}[0-9]*' | awk '{print $2}' | head -1)
+            [ -n "$ip" ] && break
+        done
+    fi
+
+    # Fallback: always works but browser on same device can reach it
     if [ -z "$ip" ]; then
         ip="127.0.0.1"
     fi
+
     echo "$ip"
 }
 
 # ---- Detect default browser ----
 detect_browser() {
+    # Termux / Android
     if [ -n "${PREFIX:-}" ] && echo "$PREFIX" | grep -q "com.termux" 2>/dev/null; then
         echo "termux"
         return
     fi
+    # macOS
     if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "macos"
+        return
+    fi
+    # Windows Git Bash / MSYS
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ -n "${MINGW_PREFIX:-}" ]]; then
+        echo "windows"
         return
     fi
     # Linux: check xdg-settings
@@ -209,6 +269,49 @@ detect_browser() {
         fi
     done
     echo "xdg"
+}
+
+# ---- Open browser (universal) ----
+open_browser_url() {
+    local url="$1"
+    local browser_type
+    browser_type=$(detect_browser)
+
+    if [ "$browser_type" = "termux" ]; then
+        # Termux: try termux-open-url first, then am start, then open-url
+        if command -v termux-open-url >/dev/null 2>&1; then
+            termux-open-url "$url" 2>/dev/null && return 0
+        fi
+        if command -v am >/dev/null 2>&1; then
+            am start -a android.intent.action.VIEW -d "$url" -t "android.intent.action.VIEW" 2>/dev/null && return 0
+        fi
+        if command -v open-url >/dev/null 2>&1; then
+            open-url "$url" 2>/dev/null && return 0
+        fi
+    elif [ "$browser_type" = "macos" ]; then
+        open "$url" 2>/dev/null && return 0
+    elif [ "$browser_type" = "windows" ]; then
+        cmd.exe /c start "" "$url" 2>/dev/null && return 0
+    elif [ "$browser_type" = "chrome" ]; then
+        google-chrome --new-window "$url" 2>/dev/null && return 0
+        google-chrome-stable --new-window "$url" 2>/dev/null && return 0
+    elif [ "$browser_type" = "firefox" ]; then
+        firefox --new-window "$url" 2>/dev/null && return 0
+    elif [ "$browser_type" = "edge" ]; then
+        microsoft-edge --new-window "$url" 2>/dev/null && return 0
+    elif [ "$browser_type" = "chromium" ]; then
+        chromium --new-window "$url" 2>/dev/null && return 0
+        chromium-browser --new-window "$url" 2>/dev/null && return 0
+    fi
+
+    # Final fallback: xdg-open (Linux), open (macOS), start (Windows)
+    if command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$url" 2>/dev/null && return 0
+    fi
+    if command -v open >/dev/null 2>&1; then
+        open "$url" 2>/dev/null && return 0
+    fi
+    return 1
 }
 
 # ---- Stop server ----
@@ -381,8 +484,6 @@ launch_server() {
     port=$(find_port)
     local ip
     ip=$(get_local_ip)
-    local browser_type
-    browser_type=$(detect_browser)
 
     # Clear terminal and show fresh banner
     clear 2>/dev/null || true
@@ -396,48 +497,27 @@ launch_server() {
     # Trap SIGINT for clean exit
     trap 'echo ""; echo -e "  ${YELLOW}[OK]${NC} StreamHub stopped."; kill $server_pid 2>/dev/null; remove_pid; exit 0' INT TERM
 
-    # Start the Python server in the background briefly to open browser
+    # Start the Python server in the background
     "$py" "$SRC_DIR/server.py" --port "$port" --data "$DATA_DIR" --web "$WEB_DIR" &
     local server_pid=$!
 
-    # Wait for server to be ready (up to 3 seconds)
+    # Wait for server to be ready (up to 5 seconds)
     local waited=0
-    while [ $waited -lt 30 ]; do
-        if curl -s "http://127.0.0.1:$port/" >/dev/null 2>&1; then
+    while [ $waited -lt 50 ]; do
+        if curl -s --max-time 1 "http://127.0.0.1:$port/" >/dev/null 2>&1; then
             break
         fi
         sleep 0.1
         waited=$((waited + 1))
     done
 
-    # Auto-open browser with the machine's IP address (not localhost)
     local url="http://${ip}:${port}"
     echo -e "  ${GREEN}StreamHub is running at ${WHITE}${url}${NC}"
     echo -e "  ${DIM}Press Ctrl+C to stop${NC}"
     echo ""
 
-    # Open the default browser
-    if [ "$browser_type" = "termux" ]; then
-        if command -v termux-open-url >/dev/null 2>&1; then
-            termux-open-url "$url" >/dev/null 2>&1 || true
-        elif command -v am >/dev/null 2>&1; then
-            am start -a android.intent.action.VIEW -d "$url" >/dev/null 2>&1 || true
-        fi
-    elif [ "$browser_type" = "macos" ]; then
-        open "$url" >/dev/null 2>&1 || true
-    elif [ "$browser_type" = "chrome" ]; then
-        google-chrome --new-window "$url" >/dev/null 2>&1 || \
-        google-chrome-stable --new-window "$url" >/dev/null 2>&1 || true
-    elif [ "$browser_type" = "firefox" ]; then
-        firefox --new-window "$url" >/dev/null 2>&1 || true
-    elif [ "$browser_type" = "edge" ]; then
-        microsoft-edge --new-window "$url" >/dev/null 2>&1 || true
-    elif [ "$browser_type" = "chromium" ]; then
-        chromium --new-window "$url" >/dev/null 2>&1 || \
-        chromium-browser --new-window "$url" >/dev/null 2>&1 || true
-    elif command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "$url" >/dev/null 2>&1 || true
-    fi
+    # Auto-open browser (works on all platforms)
+    open_browser_url "$url" 2>/dev/null
 
     # Bring server to foreground
     wait "$server_pid" 2>/dev/null
