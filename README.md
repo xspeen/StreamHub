@@ -1,14 +1,35 @@
 <div align="center">
 
-<svg viewBox="0 0 40 40" fill="none" width="80" height="80"><rect width="40" height="40" rx="10" fill="url(#lAR)"/><path d="M10 28L18 12H24L16 28H10Z" fill="#080a0f"/><path d="M18 28L26 12H32L24 28H18Z" fill="#080a0f" opacity=".45"/><defs><linearGradient id="lAR" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#00e5c8"/><stop offset="1" stop-color="#006b5e"/></linearGradient></defs></svg>
+<svg viewBox="0 0 120 120" fill="none" width="120" height="120">
+  <rect width="120" height="120" rx="28" fill="url(#logoGrad)"/>
+  <path d="M30 84L54 36H66L42 84H30Z" fill="#080a0f"/>
+  <path d="M54 84L78 36H90L66 84H54Z" fill="#080a0f" opacity=".45"/>
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="120" y2="120">
+      <stop stop-color="#00e5c8"/>
+      <stop offset="1" stop-color="#006b5e"/>
+    </linearGradient>
+  </defs>
+</svg>
 
-# StreamHub
+<br>
 
-**Free Live TV Streaming — 140+ Countries, Zero Cost**
+# **StreamHub**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-00e5c8.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](#)
-[![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20Android-00e5c8.svg)](#installation)
+### Free Live TV Streaming -- 140+ Countries, Zero Cost
+
+<br>
+
+[![Version](https://img.shields.io/badge/Version-2.0.2-00e5c8?style=for-the-badge&labelColor=0e1118)](#)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge&labelColor=0e1118)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.7+-yellow?style=for-the-badge&logo=python&logoColor=white&labelColor=0e1118)](#prerequisites)
+
+<br>
+
+<img src="https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black" alt="Linux"> &nbsp;
+<img src="https://img.shields.io/badge/macOS-000000?style=flat&logo=apple&logoColor=white" alt="macOS"> &nbsp;
+<img src="https://img.shields.io/badge/Windows-0078D4?style=flat&logo=windows&logoColor=white" alt="Windows"> &nbsp;
+<img src="https://img.shields.io/badge/Android-3DDC84?style=flat&logo=android&logoColor=white" alt="Android"> &nbsp;
 
 </div>
 
@@ -24,22 +45,33 @@ No account required. No subscription. No ads.
 
 | Feature | Description |
 |---------|-------------|
-| **140+ Countries** | Channel sources from every continent — Africa, Europe, Asia, Americas, Middle East, Oceania |
+| **140+ Countries** | Channel sources from every continent -- Africa, Europe, Asia, Americas, Middle East, Oceania |
 | **DStv / GOtv** | Aggregated African channel sources in a single tab |
-| **HLS Streaming** | Adaptive bitrate via hls.js — buffers fast, plays smooth |
-| **Profile System** | Local admin passcode, display name, and avatar — all stored on your device |
+| **HLS Streaming** | Adaptive bitrate via hls.js -- buffers fast, plays smooth |
+| **Profile System** | Local admin passcode, display name, and photo/avatar -- all stored on your device |
+| **Photo Upload** | Set a real photo from your gallery as your profile picture |
+| **Passcode Security** | Strength validation, repeated character detection, username similarity check |
 | **Dark / Light Theme** | Toggle with one click; preference persists across sessions |
 | **Cross-Platform** | Works on Linux, macOS, Windows (CMD, PowerShell, Git Bash), Termux, WSL, Kali, Parrot |
 | **Search & Filter** | Instant search across all loaded channels |
 | **Keyboard Shortcuts** | Space (play/pause), Arrows (next/prev), F (fullscreen), M (mute) |
 | **PiP Mode** | Picture-in-Picture support on compatible browsers |
 | **Swipe Navigation** | Touch-friendly channel switching on mobile |
-| **Zero Dependencies** | Python 3.7+ standard library only — no pip install, no Node.js, no Docker |
+| **Zero Dependencies** | Python 3.7+ standard library only -- no pip install, no Node.js, no Docker |
 | **Offline Cache** | Channel data cached locally for 6 hours to minimize re-fetching |
 
 ---
 
 ## Installation
+
+<div align="center">
+
+<img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux"> &nbsp;
+<img src="https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS"> &nbsp;
+<img src="https://img.shields.io/badge/Android_Termux-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android"> &nbsp;
+<img src="https://img.shields.io/badge/Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Windows"> &nbsp;
+
+</div>
 
 ### Linux / macOS / Termux / Kali / Debian / Parrot
 
@@ -65,8 +97,8 @@ Same as the Linux command above.
 
 ### Prerequisites
 
-- **Python 3.7 or higher** — required. Install from [python.org](https://python.org) or your package manager.
-- **curl or wget** — used by the installer to download files. Most systems have this pre-installed.
+- **Python 3.7 or higher** -- required. Install from [python.org](https://python.org) or your package manager.
+- **curl or wget** -- used by the installer to download files. Most systems have this pre-installed.
 
 The installer will:
 1. Detect your operating system and architecture
@@ -85,9 +117,7 @@ The installer will:
 streamhub
 ```
 
-On first launch, you will be prompted to create an admin passcode and display name. On subsequent launches, you will see a welcome message and the server starts automatically.
-
-The web interface opens in your default browser at `http://127.0.0.1:8080`.
+On first launch, you will be prompted to create an admin passcode and display name. On subsequent launches, you will see a welcome message, a fresh terminal session with the StreamHub banner, and the server starts automatically. Your default browser opens with the streaming interface.
 
 ### Commands
 
@@ -110,6 +140,33 @@ The web interface opens in your default browser at `http://127.0.0.1:8080`.
 | `F` | Toggle fullscreen |
 | `M` | Toggle mute |
 | `Esc` | Exit fullscreen |
+
+---
+
+## Security
+
+### Passcode Protection
+
+StreamHub uses a local passcode to protect access to the web interface. The passcode is stored as a SHA-256 hash on your device -- it is never transmitted over the network.
+
+**Passcode requirements:**
+- Minimum 4 characters
+- Cannot be all repeated characters (e.g., `aaaa`, `1111`)
+- Cannot be too similar to your display name
+- Strength indicator shows Weak / Fair / Strong based on complexity
+
+**What is checked:**
+- Repeated character patterns (e.g., `aaaa`, `11111`)
+- Sequential characters (e.g., `abcd`, `1234`)
+- Similarity to your display name
+- Mix of character types (letters, numbers, symbols)
+
+### Profile Privacy
+
+- All profile data (name, photo, passcode hash) is stored locally on your device in `~/.streamhub/data/`
+- No data is sent to external servers
+- Profile photos are stored as compressed base64 data (max 200x200px, JPEG quality 70%)
+- The server only listens on `127.0.0.1` (localhost) -- it is not accessible from the network
 
 ---
 
@@ -146,7 +203,7 @@ The local server exposes these endpoints:
 |--------|----------|-------------|
 | GET | `/` | Serves the web interface |
 | GET | `/api/profile` | Returns user profile as JSON |
-| POST | `/api/profile` | Saves user profile |
+| POST | `/api/profile` | Saves user profile (name, avatar, photo) |
 | POST | `/api/auth` | Verifies passcode or changes passcode |
 | GET | `/api/channels?category={id}` | Returns channels for a category |
 | GET | `/api/categories` | Returns category list |
@@ -157,7 +214,7 @@ The local server exposes these endpoints:
 
 <div align="center">
 
-![South Africa](https://flagcdn.com/24x18/za.png) ![Nigeria](https://flagcdn.com/24x18/ng.png) ![Kenya](https://flagcdn.com/24x18/ke.png) ![Ghana](https://flagcdn.com/24x18/gh.png) ![Egypt](https://flagcdn.com/24x18/eg.png) ![Ethiopia](https://flagcdn.com/24x18/et.png) ![UK](https://flagcdn.com/24x18/gb.png) ![Germany](https://flagcdn.com/24x18/de.png) ![France](https://flagcdn.com/24x18/fr.png) ![Italy](https://flagcdn.com/24x18/it.png) ![Spain](https://flagcdn.com/24x18/es.png) ![Portugal](https://flagcdn.com/24x18/pt.png) ![USA](https://flagcdn.com/24x18/us.png) ![Canada](https://flagcdn.com/24x18/ca.png) ![Brazil](https://flagcdn.com/24x18/br.png) ![Mexico](https://flagcdn.com/24x18/mx.png) ![India](https://flagcdn.com/24x18/in.png) ![Japan](https://flagcdn.com/24x18/jp.png) ![South Korea](https://flagcdn.com/24x18/kr.png) ![China](https://flagcdn.com/24x18/cn.png) ![Turkey](https://flagcdn.com/24x18/tr.png) ![Saudi Arabia](https://flagcdn.com/24x18/sa.png) ![UAE](https://flagcdn.com/24x18/ae.png) ![Australia](https://flagcdn.com/24x18/au.png) ![New Zealand](https://flagcdn.com/24x18/nz.png)
+![South Africa](https://flagcdn.com/24x18/za.png) ![Nigeria](https://flagcdn.com/24x18/ng.png) ![Kenya](https://flagcdn.com/24x18/ke.png) ![Ghana](https://flagcdn.com/24x18/gh.png) ![Ethiopia](https://flagcdn.com/24x18/et.png) ![UK](https://flagcdn.com/24x18/gb.png) ![Germany](https://flagcdn.com/24x18/de.png) ![France](https://flagcdn.com/24x18/fr.png) ![Italy](https://flagcdn.com/24x18/it.png) ![Spain](https://flagcdn.com/24x18/es.png) ![Portugal](https://flagcdn.com/24x18/pt.png) ![USA](https://flagcdn.com/24x18/us.png) ![Canada](https://flagcdn.com/24x18/ca.png) ![Brazil](https://flagcdn.com/24x18/br.png) ![Mexico](https://flagcdn.com/24x18/mx.png) ![India](https://flagcdn.com/24x18/in.png) ![Japan](https://flagcdn.com/24x18/jp.png) ![South Korea](https://flagcdn.com/24x18/kr.png) ![China](https://flagcdn.com/24x18/cn.png) ![Turkey](https://flagcdn.com/24x18/tr.png) ![Saudi Arabia](https://flagcdn.com/24x18/sa.png) ![UAE](https://flagcdn.com/24x18/ae.png) ![Australia](https://flagcdn.com/24x18/au.png) ![New Zealand](https://flagcdn.com/24x18/nz.png)
 
 </div>
 
@@ -187,7 +244,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 <div align="center">
 
-**StreamHub v1.0.0**
+**StreamHub v2.0.2**
 
 Built with care. Free forever.
 

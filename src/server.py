@@ -193,6 +193,14 @@ class StreamHubHandler(BaseHTTPRequestHandler):
                 profile["name"] = str(data["name"])[:50]
             if "avatar" in data:
                 profile["avatar"] = str(data["avatar"])[:5]
+            if "photo" in data:
+                # Store photo as base64 data URL, limit to 500KB to keep JSON manageable
+                photo = str(data["photo"])
+                if len(photo) > 600000:
+                    photo = photo[:600000]
+                profile["photo"] = photo
+            elif "photo" in data and not data["photo"]:
+                profile["photo"] = ""
             profile["last_login"] = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
 
             self.db.save_profile(profile)
