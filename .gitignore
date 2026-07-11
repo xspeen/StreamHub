@@ -1,0 +1,13 @@
+data/*.json
+data/channels_cache.json
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+node_modules/
