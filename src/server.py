@@ -335,7 +335,6 @@ def main():
 
     # Handle SIGINT for clean shutdown (works in Termux)
     def signal_handler(sig, frame):
-        print("\n  \033[1;33m[OK]\033[0m StreamHub stopped.")
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
@@ -348,18 +347,14 @@ def main():
     for attempt in range(max_retries):
         try:
             server = HTTPServer(("127.0.0.1", port), StreamHubHandler)
-            print(f"\n  \033[0;32mStreamHub is running at \033[1;37mhttp://127.0.0.1:{port}\033[0m")
-            print(f"  \033[2mPress Ctrl+C to stop\033[0m\n")
             server.serve_forever()
         except OSError as e:
             if "Address already in use" in str(e) or "errno 98" in str(e).lower():
                 port += 1
                 if attempt < max_retries - 1:
                     continue
-            print(f"\n  \033[0;31m[ERROR]\033[0m {e}")
             sys.exit(1)
         except KeyboardInterrupt:
-            print("\n  \033[1;33m[OK]\033[0m StreamHub stopped.")
             sys.exit(0)
 
 
