@@ -41,13 +41,50 @@ mkdir -p "$DATA_DIR" 2>/dev/null
 
 # ---- ASCII Banner ----
 show_banner() {
+    local w
+    w=$(tput cols 2>/dev/null || echo 80)
+    local art=(
+'  _____ _               _                   '
+' / ____| |             | |                  '
+'| (___ | |__   __ _  __| | _____      _____ '
+' \___ \| '"'"'_ \ / _\` |/ _\` |/ _ \ \ /\ / / _ \'
+' ____) | | | | (_| | (_| | (_) \ V  V /  __/'
+'|_____/|_| |_|\__,_|\__,_|\___/ \_/\_/ \___|'
+    )
+    local art_w=49
+    local pad=$(( (w - art_w) / 2 ))
+    [ $pad -lt 2 ] && pad=2
+    local sp=""
+    for ((i=0; i<pad; i++)); do sp="${sp} "; done
+    local border=""
+    local bw=$((art_w + 4))
+    for ((i=0; i<bw; i++)); do border="${border}═"; done
+
     echo ""
-    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
+    echo -e "  ${CYAN}${sp}${border}${NC}"
+    for line in "${art[@]}"; do
+        echo -e "  ${CYAN}${sp}${NC}  ${WHITE}${BOLD}${line}${NC}"
+    done
+    echo -e "  ${CYAN}${sp}${NC}  ${DIM}Free Live TV Streaming${NC}"
+    echo -e "  ${CYAN}${sp}${border}${NC}"
     echo ""
-    echo -e "     ${WHITE}${BOLD}S T R E A M H U B${NC}"
-    echo -e "     ${DIM}Free Live TV Streaming${NC}"
-    echo ""
-    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
+}
+
+# ---- Show URL after server starts ----
+show_server_url() {
+    local url="$1"
+    local port="$2"
+    local w
+    w=$(tput cols 2>/dev/null || echo 80)
+    local bw=49
+    local pad=$(( (w - bw) / 2 ))
+    [ $pad -lt 2 ] && pad=2
+    local sp=""
+    for ((i=0; i<pad; i++)); do sp="${sp} "; done
+
+    echo -e "  ${GREEN}${sp}StreamHub is live!${NC}"
+    echo -e "  ${WHITE}${sp}${url}${NC}"
+    echo -e "  ${DIM}${sp}Press Ctrl+C to stop${NC}"
     echo ""
 }
 
@@ -91,13 +128,7 @@ GITHUB_REPO="xspeen/StreamHub"
 
 # ---- Help ----
 show_help() {
-    echo ""
-    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
-    echo ""
-    echo -e "     ${WHITE}${BOLD}S T R E A M H U B${NC}  ${DIM}v${VERSION}${NC}"
-    echo ""
-    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
-    echo ""
+    show_banner
     echo -e "  ${WHITE}Usage:${NC}"
     echo -e "    streamhub [command]"
     echo ""
@@ -609,10 +640,7 @@ launch_server() {
 
     local url="http://${ip}:${port}"
     echo ""
-    echo -e "  ${GREEN}  StreamHub is live!${NC}"
-    echo -e "  ${WHITE}  ${url}${NC}"
-    echo -e "  ${DIM}  Press Ctrl+C to stop${NC}"
-    echo ""
+    show_server_url "$url" "$port"
 
     # Auto-open browser (works on all platforms)
     open_browser_url "$url" 2>/dev/null
