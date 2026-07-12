@@ -42,34 +42,47 @@ mkdir -p "$DATA_DIR" 2>/dev/null
 # ---- ASCII Banner ----
 show_banner() {
     echo ""
-    echo -e "  ${BLUE}"
-    echo "     _____ _               _                   "
-    echo "    / ____| |             | |                  "
-    echo "   | (___ | |__   __ _  __| | _____      _____ "
-    echo "    \___ \| '_ \ / _\` |/ _\` |/ _ \ \ /\ / / _ \\"
-    echo "    ____) | | | | (_| | (_| | (_) \ V  V /  __/"
-    echo "   |_____/|_| |_|\__,_|\__,_|\___/ \_/\_/ \___|"
-    echo -e "  ${NC}"
+    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "     ${WHITE}${BOLD}S T R E A M H U B${NC}"
+    echo -e "     ${DIM}Free Live TV Streaming${NC}"
+    echo ""
+    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
+    echo ""
 }
 
-# ---- LIVE animation ----
-show_live() {
-    local chars="L  I  V  E"
-    local displayed=""
-    printf "  ${RED}"
-    for ((i=0; i<${#chars}; i++)); do
-        if [ "${chars:$i:1}" != " " ]; then
-            displayed="${displayed}${chars:$i:1}"
-            printf "\r  LIVE  [%s]" "$displayed"
-            sleep 0.12
-        else
-            displayed="${displayed} "
-            printf "\r  LIVE  [%s]" "$displayed"
-        fi
+# ---- Progress bar with percentage ----
+show_progress() {
+    local label="${1:-Loading}"
+    local total=20
+    local pct=0
+    local filled=""
+    local empty=""
+    local i
+
+    for ((i=0; i<=total; i++)); do
+        pct=$((i * 100 / total))
+        filled=""
+        empty=""
+        for ((j=0; j<i; j++)); do filled="${filled}█"; done
+        for ((j=i; j<total; j++)); do empty="${empty}░"; done
+        printf "\r  ${CYAN}  %s  ${WHITE}[${GREEN}%s${DIM}%s${WHITE}] ${WHITE}%3d%%${NC}" "$label" "$filled" "$empty" "$pct"
+        sleep 0.04
     done
-    printf "${NC}\r"
-    echo -e "  ${RED}LIVE${NC}                                    "
-    sleep 0.3
+    echo ""
+}
+
+# ---- Loading animation with dots ----
+show_loading() {
+    local msg="${1:-Loading}"
+    local dots=""
+    for i in 1 2 3; do
+        dots="${dots}."
+        printf "\r  ${DIM}  %s%s${NC}" "$msg" "$dots"
+        sleep 0.3
+    done
+    printf "\r  ${DIM}  %s   ${NC}" "$msg"
+    echo ""
 }
 
 # ---- Version ----
@@ -79,17 +92,22 @@ GITHUB_REPO="xspeen/StreamHub"
 # ---- Help ----
 show_help() {
     echo ""
-    echo -e "  ${BOLD}${CYAN}StreamHub${NC} v${VERSION} - Free Live TV Streaming"
+    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
     echo ""
-    echo -e "  ${WHITE}Usage:${NC} streamhub [command]"
+    echo -e "     ${WHITE}${BOLD}S T R E A M H U B${NC}  ${DIM}v${VERSION}${NC}"
+    echo ""
+    echo -e "  ${CYAN}═══════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "  ${WHITE}Usage:${NC}"
+    echo -e "    streamhub [command]"
     echo ""
     echo -e "  ${WHITE}Commands:${NC}"
-    echo "    (no args)    Launch StreamHub server and open in browser"
-    echo "    --help       Show this help message"
-    echo "    --stop       Stop any running StreamHub server"
-    echo "    --reset      Reset profile and passcode (prompts for confirmation)"
-    echo "    --version    Show version number"
-    echo "    --update     Update StreamHub to latest version from GitHub"
+    echo -e "    ${GREEN}(none)${NC}     Launch server and open in browser"
+    echo -e "    ${GREEN}--help${NC}      Show this help message"
+    echo -e "    ${GREEN}--stop${NC}      Stop any running server"
+    echo -e "    ${GREEN}--reset${NC}     Reset profile and passcode"
+    echo -e "    ${GREEN}--version${NC}   Show version number"
+    echo -e "    ${GREEN}--update${NC}    Update to latest version"
     echo ""
 }
 
@@ -327,22 +345,23 @@ stop_server() {
             kill "$pid" 2>/dev/null || true
         done
         sleep 0.5
-        echo -e "${GREEN}[OK]${NC} StreamHub server stopped."
+        echo -e "  ${GREEN}  Server stopped.${NC}"
     else
-        echo -e "${YELLOW}[INFO]${NC} No StreamHub server is running."
+        echo -e "  ${DIM}  No server is running.${NC}"
     fi
 }
 
 # ---- Reset profile ----
 reset_profile() {
     echo ""
-    echo -e "${YELLOW}[WARNING]${NC} This will delete your profile and passcode."
+    echo -e "  ${RED}  This will delete your profile and passcode.${NC}"
+    echo ""
     read -r -p "  Are you sure? (y/N): " confirm
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
         rm -f "$DATA_DIR/config.json" "$DATA_DIR/profile.json" "$DATA_DIR/channels_cache.json" 2>/dev/null
-        echo -e "${GREEN}[OK]${NC} Profile has been reset."
+        echo -e "  ${GREEN}  Profile has been reset.${NC}"
     else
-        echo -e "${DIM}Cancelled.${NC}"
+        echo -e "  ${DIM}  Cancelled.${NC}"
     fi
 }
 
@@ -368,23 +387,23 @@ check_for_updates() {
 
     # New version available - prompt user
     echo ""
-    echo -e "  ${CYAN}A new version of StreamHub is available!${NC}"
-    echo -e "  ${WHITE}Current:${NC} v${VERSION}"
-    echo -e "  ${WHITE}Latest:${NC}  ${GREEN}v${remote_version}${NC}"
+    echo -e "  ${CYAN}  New version available!${NC}"
+    echo -e "  ${DIM}  Current:${NC} ${WHITE}v${VERSION}${NC}"
+    echo -e "  ${DIM}  Latest:${NC}  ${GREEN}v${remote_version}${NC}"
     echo ""
-    echo -e "  ${DIM}Press Enter to update, or type 'skip' to continue with current version${NC}"
+    echo -e "  ${DIM}  Press Enter to update, or type 'skip' to continue${NC}"
     echo ""
-    read -r -p "  > " choice
+    read -r -p "    > " choice
 
     if [ "$choice" = "skip" ] || [ "$choice" = "Skip" ] || [ "$choice" = "SKIP" ]; then
-        echo -e "  ${DIM}Skipping update. Continuing with v${VERSION}...${NC}"
+        echo -e "  ${DIM}  Skipping update...${NC}"
         echo ""
         return 0
     fi
 
     # Perform the update
     echo ""
-    echo -e "  ${CYAN}Updating StreamHub to v${remote_version}...${NC}"
+    echo -e "  ${CYAN}  Updating to v${remote_version}...${NC}"
     echo ""
 
     local install_sh
@@ -394,7 +413,7 @@ check_for_updates() {
     elif command -v wget >/dev/null 2>&1; then
         wget -q -O "$install_sh" "https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh"
     else
-        echo -e "  ${RED}[ERROR] Neither curl nor wget found.${NC}"
+        echo -e "  ${RED}  Neither curl nor wget found.${NC}"
         return 1
     fi
     chmod +x "$install_sh"
@@ -403,8 +422,8 @@ check_for_updates() {
 
     # Show success
     echo ""
-    echo -e "  ${GREEN}StreamHub updated successfully to v${remote_version}!${NC}"
-    echo -e "  ${GREEN}Run 'streamhub' to start the latest version.${NC}"
+    echo -e "  ${GREEN}  Updated to v${remote_version} successfully!${NC}"
+    echo -e "  ${DIM}  Run 'streamhub' to start the latest version.${NC}"
     echo ""
     exit 0
 }
@@ -412,7 +431,9 @@ check_for_updates() {
 # ---- Update ----
 do_update() {
     echo ""
-    echo -e "${CYAN}Updating StreamHub...${NC}"
+    echo -e "  ${CYAN}  Updating StreamHub...${NC}"
+    echo ""
+    show_progress "Downloading"
     local install_sh
     install_sh=$(mktemp)
     if command -v curl >/dev/null 2>&1; then
@@ -420,7 +441,7 @@ do_update() {
     elif command -v wget >/dev/null 2>&1; then
         wget -q -O "$install_sh" "https://raw.githubusercontent.com/xspeen/StreamHub/main/install.sh"
     else
-        echo -e "${RED}[ERROR] Neither curl nor wget found.${NC}"
+        echo -e "  ${RED}  Neither curl nor wget found.${NC}"
         exit 1
     fi
     chmod +x "$install_sh"
@@ -432,31 +453,40 @@ do_update() {
 first_run_setup() {
     local py="$1"
     show_banner
-    show_live
+    show_progress "Setting up"
+    echo ""
+
+    echo -e "  ${CYAN}┌─────────────────────────────────────┐${NC}"
+    echo -e "  ${CYAN}│${NC}  ${WHITE}${BOLD}Welcome to StreamHub!${NC}               ${CYAN}│${NC}"
+    echo -e "  ${CYAN}│${NC}  ${DIM}Create your admin account below${NC}     ${CYAN}│${NC}"
+    echo -e "  ${CYAN}└─────────────────────────────────────┘${NC}"
     echo ""
 
     # Create passcode with validation
     while true; do
-        read -r -s -p "  Create your StreamHub admin passcode: " pass1
+        echo -e "  ${WHITE}Create passcode${NC} ${DIM}(min 4 characters)${NC}"
+        read -r -s -p "    > " pass1
         echo ""
         # Validate passcode
         if [ ${#pass1} -lt 4 ]; then
-            echo -e "  ${RED}Passcode must be at least 4 characters. Try again.${NC}"
+            echo -e "  ${RED}  x  Must be at least 4 characters${NC}"
             echo ""
             continue
         fi
         # Check for repeated characters (e.g., "aaaa", "1111")
         if echo "$pass1" | "$py" -c "import sys,re;sys.exit(0 if re.match(r'^(.)\\1+$',sys.stdin.read().strip()) else 1)" 2>/dev/null; then
-            echo -e "  ${RED}Passcode cannot be all repeated characters. Try again.${NC}"
+            echo -e "  ${RED}  x  Cannot be all repeated characters${NC}"
             echo ""
             continue
         fi
-        read -r -s -p "  Confirm passcode: " pass2
+        echo -e "  ${WHITE}Confirm passcode${NC}"
+        read -r -s -p "    > " pass2
         echo ""
         if [ "$pass1" = "$pass2" ]; then
+            echo -e "  ${GREEN}  OK  Passcode set!${NC}"
             break
         else
-            echo -e "  ${RED}Passcodes do not match. Try again.${NC}"
+            echo -e "  ${RED}  x  Passcodes do not match${NC}"
             echo ""
         fi
     done
@@ -471,8 +501,9 @@ with open(os.path.join('$DATA_DIR', 'config.json'), 'w') as f:
     json.dump(cfg, f, indent=2)
 "
 
-    # Get display name
-    read -r -p "  Enter your display name: " dname
+    echo ""
+    echo -e "  ${WHITE}Enter your display name${NC}"
+    read -r -p "    > " dname
     [ -z "$dname" ] && dname="User"
 
     # Get first letter as avatar
@@ -494,7 +525,8 @@ with open(os.path.join('$DATA_DIR', 'profile.json'), 'w') as f:
 "
 
     echo ""
-    echo -e "  ${GREEN}[OK]${NC} Account created and saved to device"
+    show_progress "Saving profile"
+    echo -e "  ${GREEN}  Account ready!${NC}"
     echo ""
 }
 
@@ -502,7 +534,7 @@ with open(os.path.join('$DATA_DIR', 'profile.json'), 'w') as f:
 subsequent_run() {
     local py="$1"
     show_banner
-    show_live
+    show_progress "Loading"
     echo ""
 
     local dname
@@ -529,7 +561,7 @@ if os.path.exists(p):
         json.dump(d, f, indent=2)
 " 2>/dev/null || true
 
-    echo -e "  Welcome back, ${WHITE}${dname}${NC}"
+    echo -e "  ${GREEN}Welcome back${NC} ${WHITE}${dname}${NC}"
     echo ""
 }
 
@@ -553,13 +585,13 @@ launch_server() {
     clear 2>/dev/null || true
     show_banner
 
-    echo -e "  ${GREEN}[OK]${NC} Starting StreamHub server..."
+    show_progress "Starting server"
     echo ""
 
     save_pid
 
     # Trap SIGINT for clean exit
-    trap 'echo ""; echo -e "  ${YELLOW}[OK]${NC} StreamHub stopped."; kill $server_pid 2>/dev/null; remove_pid; exit 0' INT TERM
+    trap 'echo ""; echo -e "  ${YELLOW}  Server stopped.${NC}"; kill $server_pid 2>/dev/null; remove_pid; exit 0' INT TERM
 
     # Start the Python server in the background
     "$py" "$SRC_DIR/server.py" --port "$port" --data "$DATA_DIR" --web "$WEB_DIR" &
@@ -576,8 +608,10 @@ launch_server() {
     done
 
     local url="http://${ip}:${port}"
-    echo -e "  ${GREEN}StreamHub is running at ${WHITE}${url}${NC}"
-    echo -e "  ${DIM}Press Ctrl+C to stop${NC}"
+    echo ""
+    echo -e "  ${GREEN}  StreamHub is live!${NC}"
+    echo -e "  ${WHITE}  ${url}${NC}"
+    echo -e "  ${DIM}  Press Ctrl+C to stop${NC}"
     echo ""
 
     # Auto-open browser (works on all platforms)
@@ -592,8 +626,8 @@ main() {
     local py
     py=$(find_python)
     if [ -z "$py" ]; then
-        echo -e "${RED}[ERROR] Python 3.7+ is required but not found.${NC}"
-        echo -e "${WHITE}Install it from python.org or your package manager.${NC}"
+        echo -e "  ${RED}  Python 3.7+ is required but not found.${NC}"
+        echo -e "  ${DIM}  Install from python.org or your package manager.${NC}"
         exit 1
     fi
 
@@ -611,7 +645,7 @@ main() {
             exit 0
             ;;
         --version|-v)
-            echo "StreamHub v${VERSION}"
+            echo -e "  StreamHub v${VERSION}"
             exit 0
             ;;
         --update)
@@ -631,8 +665,8 @@ main() {
             launch_server "$py"
             ;;
         *)
-            echo -e "${RED}[ERROR] Unknown command: $1${NC}"
-            echo "Run 'streamhub --help' for usage information."
+            echo -e "  ${RED}  Unknown command: $1${NC}"
+            echo -e "  ${DIM}  Run 'streamhub --help' for usage.${NC}"
             exit 1
             ;;
     esac
