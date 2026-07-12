@@ -44,10 +44,9 @@ show_banner() {
     echo ""
     echo -e "  ${CYAN} _____  _                            _   _       _     ${NC}"
     echo -e "  ${CYAN}| ___ || |_ _ __ ___  __ _ _ __ ___ | | | |_   _| |__  ${NC}"
-    echo -e "  ${CYAN}| ___ || __| '__/ _ \\/ _\` | '_ \` _ \\| |_| | | | | '_ \\ ${NC}"
+    echo -e "  ${CYAN}| ___ || __| '__/ _ \\/ _\` | '_ \` _ \\\\| |_| | | | | '_ \\ ${NC}"
     echo -e "  ${CYAN}| ___ || |_| | |  __/ (_| | | | | | |  _  | |_| | |_) |${NC}"
     echo -e "  ${CYAN}|_____ | \\__|_|  \\___|\\__,_|_| |_| |_|_| |_|\\__,_|_.__/ ${NC}"
-    echo -e "  ${DIM}              Free Live TV Streaming  v${VERSION}${NC}"
     echo ""
 }
 
@@ -338,6 +337,7 @@ open_browser_url() {
 
 # ---- Stop server ----
 stop_server() {
+    show_banner
     local pids
     pids=$(pgrep -f "streamhub.*server.py" 2>/dev/null || true)
     if [ -z "$pids" ]; then
@@ -356,8 +356,8 @@ stop_server() {
 
 # ---- Reset profile ----
 reset_profile() {
-    echo ""
-    echo -e "  ${RED}  This will delete your profile and passcode.${NC}"
+    show_banner
+    echo -e "  ${RED}This will delete your profile and passcode.${NC}"
     echo ""
     read -r -p "  Are you sure? (y/N): " confirm
     if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
@@ -389,12 +389,12 @@ check_for_updates() {
     fi
 
     # New version available - prompt user
+    show_banner
+    echo -e "  ${CYAN}New version available!${NC}"
+    echo -e "  ${DIM}Current:${NC} ${WHITE}v${VERSION}${NC}"
+    echo -e "  ${DIM}Latest:${NC}  ${GREEN}v${remote_version}${NC}"
     echo ""
-    echo -e "  ${CYAN}  New version available!${NC}"
-    echo -e "  ${DIM}  Current:${NC} ${WHITE}v${VERSION}${NC}"
-    echo -e "  ${DIM}  Latest:${NC}  ${GREEN}v${remote_version}${NC}"
-    echo ""
-    echo -e "  ${DIM}  Press Enter to update, or type 'skip' to continue${NC}"
+    echo -e "  ${DIM}Press Enter to update, or type 'skip' to continue${NC}"
     echo ""
     read -r -p "    > " choice
 
@@ -425,15 +425,16 @@ check_for_updates() {
 
     # Show success
     echo ""
-    echo -e "  ${GREEN}  Updated to v${remote_version} successfully!${NC}"
-    echo -e "  ${DIM}  Run 'streamhub' to start the latest version.${NC}"
+    show_banner
+    echo -e "  ${GREEN}Updated to v${remote_version} successfully!${NC}"
+    echo -e "  ${DIM}Run 'streamhub' to start the latest version.${NC}"
     echo ""
     exit 0
 }
 
 # ---- Update ----
 do_update() {
-    echo ""
+    show_banner
     echo -e "  ${CYAN}  Updating StreamHub...${NC}"
     echo ""
     show_progress "Downloading"
@@ -529,7 +530,8 @@ with open(os.path.join('$DATA_DIR', 'profile.json'), 'w') as f:
 
     echo ""
     show_progress "Saving profile"
-    echo -e "  ${GREEN}  Account ready!${NC}"
+    echo ""
+    echo -e "  ${GREEN}Account ready!${NC} ${WHITE}${dname}${NC}"
     echo ""
 }
 
@@ -610,7 +612,7 @@ launch_server() {
         waited=$((waited + 1))
     done
 
-    local url="http://${ip}:${port}"
+    local url="http://127.0.0.1:${port}"
     echo ""
     show_server_url "$url" "$port"
 
