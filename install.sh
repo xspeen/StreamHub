@@ -7,7 +7,7 @@ set -euo pipefail
 REPO="https://github.com/xspeen/StreamHub"
 RAW="https://raw.githubusercontent.com/xspeen/StreamHub/main"
 INSTALL_DIR=""
-VERSION="2.1.0"
+VERSION="2.2.9"
 
 # ---- ANSI Colors (with terminal support check) ----
 setup_colors() {
@@ -130,6 +130,7 @@ install_files() {
 
     # Download files
     local files=(
+        "VERSION:VERSION"
         "bin/streamhub:bin/streamhub"
         "src/core.sh:src/core.sh"
         "src/server.py:src/server.py"
@@ -148,11 +149,12 @@ install_files() {
         local pct=$((idx * 80 / total + 10))
 
         case $idx in
-            1) status="Downloading core modules..." ;;
-            2) status="Setting up launcher..." ;;
-            3) status="Configuring server..." ;;
-            4) status="Setting up channel scanner..." ;;
-            5) status="Setting up database..." ;;
+            1) status="Downloading version info..." ;;
+            2) status="Downloading core modules..." ;;
+            3) status="Setting up launcher..." ;;
+            4) status="Configuring server..." ;;
+            5) status="Setting up channel scanner..." ;;
+            6) status="Setting up database..." ;;
             *) status="Downloading web interface..." ;;
         esac
 

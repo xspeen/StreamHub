@@ -2,7 +2,7 @@
 # Usage: irm https://raw.githubusercontent.com/xspeen/StreamHub/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
-$Version = "2.1.0"
+$Version = "2.2.9"
 $Raw = "https://raw.githubusercontent.com/xspeen/StreamHub/main"
 $InstallDir = Join-Path $env:USERPROFILE ".streamhub"
 
@@ -52,6 +52,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $InstallDir "data") | Out-N
 
 # Download files
 $files = @(
+    @{ Remote = "VERSION"; Local = "VERSION" },
     @{ Remote = "bin/streamhub"; Local = "bin/streamhub" },
     @{ Remote = "src/core.sh"; Local = "src/core.sh" },
     @{ Remote = "src/server.py"; Local = "src/server.py" },
