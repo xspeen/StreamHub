@@ -188,9 +188,15 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);heig
 .ppTgLink__text{font-size:13px;font-weight:600}
 .ppTgLink__sub{font-size:11px;color:var(--text-d);margin-top:2px}
 .ppVer{font-size:11px;color:var(--text-d);text-align:center;margin-top:20px}
-.ppUpdate{text-align:center;padding:10px;border-radius:8px;font-size:12px;margin-top:10px}
+.ppUpdate{text-align:center;padding:12px;border-radius:10px;font-size:12px;margin-top:10px}
 .ppUpdate--ok{background:rgba(0,229,200,.1);color:var(--accent);border:1px solid rgba(0,229,200,.2)}
 .ppUpdate--new{background:rgba(255,180,0,.1);color:#ffb400;border:1px solid rgba(255,180,0,.2)}
+.ppUpdate--dl{background:rgba(255,180,0,.08);color:#ffb400;border:1px solid rgba(255,180,0,.15)}
+.ppUpdLoader{width:36px;height:36px;border:3px solid rgba(255,180,0,.15);border-top-color:#ffb400;border-radius:50%;animation:ppSpin .8s linear infinite;margin:0 auto 8px}
+@keyframes ppSpin{to{transform:rotate(360deg)}}
+.ppUpdRefresh{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.ppUpdRefresh--go{background:var(--accent);color:#000}
+.ppUpdRefresh--go:active{transform:scale(.96);opacity:.85}
 .ppField__btn--check{background:rgba(255,255,255,.06);border:1px solid var(--glass-b);color:var(--text-s);border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .2s,border-color .2s}
 .ppField__btn--check:hover{background:rgba(0,229,200,.1);border-color:var(--accent);color:var(--accent)}
 .ppField__btn--upd{background:var(--accent);border:none;color:#000;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;margin:8px auto 0;display:block;transition:background .2s}
@@ -346,7 +352,7 @@ button:focus:not(:focus-visible){outline:none}
     <div class="ppVer" id="ppCurrentVer">Version 2.2.9</div>
     <div id="ppUpdateBox" style="display:none;margin-top:10px">
       <div class="ppUpdate" id="ppUpdateMsg"></div>
-      <button class="ppField__btn ppField__btn--upd" id="ppUpdateBtn" style="display:none" onclick="doUpdate()"><i class="fa-solid fa-terminal" style="margin-right:6px"></i> Run Installer & Refresh</button>
+      <div id="ppUpdateAction" style="display:none;text-align:center;margin-top:8px"></div>
     </div>
     <button class="ppField__btn ppField__btn--check" style="width:100%;margin-top:10px" onclick="checkForUpdate()"><i class="fa-solid fa-magnifying-glass" style="margin-right:6px"></i> Check for Updates</button>
   </div>
@@ -676,54 +682,69 @@ function logout(){
 }
 
 /* ===== VERSION CHECK ===== */
+function _showUpdateLoader(box,msg,action){
+  box.style.display='';
+  msg.className='ppUpdate ppUpdate--dl';
+  msg.innerHTML='<div class="ppUpdLoader"></div><div style="font-weight:600">Downloading update...</div><div style="font-size:10px;opacity:.6;margin-top:4px">Please wait</div>';
+  action.style.display='none';
+}
+function _showUpdateReady(box,msg,action,latest,curVer){
+  msg.className='ppUpdate ppUpdate--new';
+  msg.innerHTML='<i class="fa-solid fa-circle-check" style="margin-right:6px"></i> Update ready! <b>v'+latest+'</b><div style="font-size:10px;opacity:.6;margin-top:4px">Your current version: v'+curVer+'</div>';
+  action.style.display='';
+  action.innerHTML='<button class="ppUpdRefresh ppUpdRefresh--go" onclick="doUpdate()"><i class="fa-solid fa-arrows-rotate"></i> Refresh Now</button>';
+}
+
 function checkForUpdate(){
   var curVer='';
   var box=document.getElementById('ppUpdateBox');
   var msg=document.getElementById('ppUpdateMsg');
-  var btn=document.getElementById('ppUpdateBtn');
-  box.style.display='';
-  msg.className='ppUpdate';
-  msg.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px"></i> Checking for updates...';
-  btn.style.display='none';
+  var action=document.getElementById('ppUpdateAction');
+  _showUpdateLoader(box,msg,action);
 
   fetch('/api/version').then(function(r){return r.json()}).then(function(d){
     curVer=d.version||'';
     return fetch('https://raw.githubusercontent.com/xspeen/StreamHub/main/VERSION');
   }).then(function(r){return r.text()}).then(function(latest){
     latest=latest.trim();
-    if(!latest||latest==='unknown'){msg.className='ppUpdate ppUpdate--ok';msg.textContent='Could not check for updates';return}
+    if(!latest||latest==='unknown'){msg.className='ppUpdate ppUpdate--ok';msg.innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:6px"></i> Could not check for updates';action.style.display='none';return}
     document.getElementById('ppCurrentVer').textContent='Version '+curVer;
+    var f=document.getElementById('ppFooterVer');if(f)f.textContent='StreamHub v'+curVer;
     if(curVer===latest){
       msg.className='ppUpdate ppUpdate--ok';
       msg.innerHTML='<i class="fa-solid fa-circle-check" style="margin-right:6px"></i> You are up to date (v'+curVer+')';
+      action.style.display='none';
     }else{
-      msg.className='ppUpdate ppUpdate--new';
-      msg.innerHTML='<i class="fa-solid fa-arrow-up" style="margin-right:6px"></i> New version available! <b>v'+latest+'</b> (current: v'+curVer+')<br><span style="font-size:10px;opacity:.7;margin-top:4px;display:block">Run the installer to update, then refresh this page.</span>';
-      btn.style.display='';
+      setTimeout(function(){_showUpdateReady(box,msg,action,latest,curVer)},1800);
     }
-  }).catch(function(){msg.className='ppUpdate ppUpdate--ok';msg.textContent='Could not connect to update server'});
+  }).catch(function(){
+    msg.className='ppUpdate ppUpdate--ok';
+    msg.innerHTML='<i class="fa-solid fa-circle-xmark" style="margin-right:6px"></i> Could not connect to server';
+    action.style.display='none';
+  });
 }
 
-function doUpdate(){
-  var cmd='bash <(curl -fsSL https://raw.githubusercontent.com/xspeen/StreamHub/main/install.sh)';
-  if(navigator.clipboard){navigator.clipboard.writeText(cmd).then(function(){showToast('Install command copied! Paste in terminal, then refresh this page')}).catch(function(){showToast('Run in terminal: '+cmd)})}else{showToast('Run in terminal: '+cmd)}
-}
+function doUpdate(){location.reload()}
 
-/* Silent check on load - shows toast if update available */
+/* Silent check on load - shows loader if update available */
 function silentUpdateCheck(){
   var curVer='';
+  var box=document.getElementById('ppUpdateBox');
+  var msg=document.getElementById('ppUpdateMsg');
+  var action=document.getElementById('ppUpdateAction');
+
   fetch('/api/version').then(function(r){return r.json()}).then(function(d){
     curVer=d.version||'';
     if(curVer){
-    document.getElementById('ppCurrentVer').textContent='Version '+curVer;
-    var f=document.getElementById('ppFooterVer');if(f)f.textContent='StreamHub v'+curVer;
+      document.getElementById('ppCurrentVer').textContent='Version '+curVer;
       var f=document.getElementById('ppFooterVer');if(f)f.textContent='StreamHub v'+curVer;
     }
     return fetch('https://raw.githubusercontent.com/xspeen/StreamHub/main/VERSION');
   }).then(function(r){return r.text()}).then(function(latest){
     latest=latest.trim();
     if(latest&&latest!=='unknown'&&curVer&&curVer!==latest){
-      setTimeout(function(){showToast('New version available: v'+latest+' -- Run installer to update')},2000);
+      _showUpdateLoader(box,msg,action);
+      setTimeout(function(){_showUpdateReady(box,msg,action,latest,curVer)},2000);
     }
   }).catch(function(){});
 }
