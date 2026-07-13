@@ -35,7 +35,7 @@ class StreamHubDB:
                 pass
         return {
             "passcode_hash": "",
-            "port": 8080,
+            "port": 5000,
             "theme": "dark"
         }
 

@@ -125,7 +125,7 @@ If any command fails, go back to the correct OS section above and run the instal
 | `pip: command not found` | Run `sudo apt install python3-pip` (Linux) or `brew install pipx` (macOS) |
 | `command not found: streamhub` | Run `source ~/.bashrc` or restart your terminal |
 | StreamHub server won't start | Run `streamhub --stop` then try again |
-| Port 8080 already in use | Run `streamhub --stop` to kill the old process |
+| Port 5000 already in use | Run `streamhub --stop` to kill the old process |
 | Browser doesn't open | Copy the URL from terminal and open manually |
 | Forgot passcode | Enter wrong passcode 3 times -- a reset form will appear to set a new one |
 
@@ -215,7 +215,7 @@ streamhub
 
 On first launch, you will be prompted to create an admin passcode and display name. On subsequent launches, the server starts automatically and your default browser opens with the streaming interface.
 
-The server detects your machine's IP address (WiFi, mobile data, or Ethernet) and opens the browser at `http://your-ip:8080`.
+The server detects your machine's IP address (WiFi, mobile data, or Ethernet) and opens the browser at `http://your-ip:5000`.
 
 ### Commands
 

@@ -109,7 +109,7 @@ setlocal
     $batchContent = @"
 @echo off
 setlocal
-python "$InstallDir\src\server.py" --port 8080 --data "$InstallDir\data" --web "$InstallDir\web"
+python "$InstallDir\src\server.py" --port 5000 --data "$InstallDir\data" --web "$InstallDir\web"
 "@
 }
 $batchContent | Set-Content -Path (Join-Path $InstallDir "streamhub.bat") -Encoding ASCII

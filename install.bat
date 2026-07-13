@@ -94,7 +94,7 @@ if "%BASH%"=="" (
     (
         echo @echo off
         echo setlocal
-        echo python "%INSTALL_DIR%\src\server.py" --port 8080 --data "%INSTALL_DIR%\data" --web "%INSTALL_DIR%\web"
+        echo python "%INSTALL_DIR%\src\server.py" --port 5000 --data "%INSTALL_DIR%\data" --web "%INSTALL_DIR%\web"
     ) > "%INSTALL_DIR%\streamhub.bat"
 ) else (
     (

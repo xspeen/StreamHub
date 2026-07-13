@@ -168,8 +168,8 @@ open_browser() {
 
 # ---- Find free port ----
 find_port() {
-    local port=8080
-    while [ $port -le 8090 ]; do
+    local port=5000
+    while [ $port -le 5010 ]; do
         if ! ss -tln 2>/dev/null | grep -q ":$port " && \
            ! netstat -tln 2>/dev/null | grep -q ":$port " && \
            ! lsof -i ":$port" >/dev/null 2>&1; then
@@ -178,7 +178,7 @@ find_port() {
         fi
         port=$((port + 1))
     done
-    echo "8080"
+    echo "5000"
     return 0
 }
 
@@ -500,7 +500,7 @@ first_run_setup() {
     hash=$(echo -n "$pass1" | "$py" -c "import sys,hashlib;print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest())")
     "$py" -c "
 import json, os, datetime
-cfg = {'passcode_hash': '$hash', 'port': 8080, 'theme': 'dark'}
+cfg = {'passcode_hash': '$hash', 'port': 5000, 'theme': 'dark'}
 with open(os.path.join('$DATA_DIR', 'config.json'), 'w') as f:
     json.dump(cfg, f, indent=2)
 "
