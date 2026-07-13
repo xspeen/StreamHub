@@ -216,6 +216,19 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);heig
 .ppPassStr__t{font-size:10px;color:var(--text-d);margin-top:4px;min-height:14px}
 .ppPhotoInput{display:none}
 
+/* Device list */
+.devItem{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--glass);border:1px solid var(--glass-b);border-radius:10px;margin-bottom:6px;transition:opacity .2s}
+.devItem--off{opacity:.45}
+.devItem__info{flex:1;min-width:0}
+.devItem__name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.devItem__ip{font-size:10px;color:var(--text-d);font-family:monospace}
+.devItem__toggle{width:36px;height:20px;border-radius:10px;background:var(--glass-hi);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.devItem__toggle--on{background:var(--accent)}
+.devItem__toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.devItem__toggle--on::after{transform:translateX(16px)}
+.devItem__del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--glass-b);border-radius:8px;color:var(--text-d);font-size:10px;cursor:pointer;flex-shrink:0;transition:color .15s,border-color .15s}
+.devItem__del:hover{color:rgba(255,90,90,.8);border-color:rgba(255,90,90,.3)}
+
 @media(orientation:landscape){.ab{flex-direction:row}.ps{flex:1;display:flex;flex-direction:column;min-width:0}.pw{flex:1;aspect-ratio:auto}.pw video{object-fit:cover !important}.ct{width:300px;flex-shrink:0;border-left:1px solid var(--glass-b)}.na{display:flex}.sh{display:flex}}
 @media(orientation:landscape) and (min-width:900px){.ct{width:340px}}
 @media(orientation:landscape) and (max-height:420px){.ct{width:240px}.hdr{padding:6px 10px}.hb{width:32px;height:32px;font-size:12px}.ci{padding:8px 10px;gap:8px}.ci__i{width:28px;height:28px;font-size:10px}.ci__n{font-size:12px}.tb{padding:6px 10px}.t{padding:5px 12px;font-size:10px}.sw{padding:6px 10px}.nb{padding:6px 10px}}
@@ -298,6 +311,26 @@ button:focus:not(:focus-visible){outline:none}
         <div class="ppPassForm__err" id="ppPassErr"></div>
         <button class="ppField__btn" style="width:100%;margin-top:8px" onclick="changePasscode()">Update Passcode</button>
       </div>
+    </div>
+
+    <div class="ppDivider"></div>
+
+    <div class="ppSection__t">Share / Device Access</div>
+    <div style="font-size:11px;color:var(--text-d);margin-bottom:10px">Add device IPs to share your stream. Only allowed devices can watch.</div>
+
+    <div class="ppField">
+      <div class="ppField__row">
+        <input type="text" class="ppField__inp" id="devIpInp" placeholder="Device IP (e.g. 192.168.1.5)">
+        <button class="ppField__btn" onclick="addDevice()">Add</button>
+      </div>
+      <div style="margin-top:6px">
+        <input type="text" class="ppField__inp" id="devNameInp" placeholder="Device name (optional)" style="width:100%">
+      </div>
+    </div>
+
+    <div id="devList" style="margin-top:8px"></div>
+    <div id="devEmpty" style="font-size:11px;color:var(--text-d);text-align:center;padding:12px;display:none">
+      No devices added. Add IPs to share your stream.
     </div>
 
     <div class="ppDivider"></div>
@@ -552,6 +585,7 @@ function openProfile(){
   document.getElementById('ppPassForm').style.display='none';
   document.getElementById('ppPassErr').textContent='';
   updatePassStr('');
+  loadDevices();
 }
 function closeProfile(){
   document.getElementById('ppOverlay').classList.remove('ppOverlay--v');
@@ -595,6 +629,63 @@ function saveProfileName(){
   fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_profile)})
   .then(function(){applyProfile();showToast('Profile updated')})
   .catch(function(){showToast('Failed to save')});
+}
+
+/* ===== DEVICE MANAGEMENT ===== */
+function loadDevices(){
+  fetch('/api/devices').then(function(r){return r.json()}).then(function(d){
+    var list=document.getElementById('devList');
+    var empty=document.getElementById('devEmpty');
+    var devs=d.devices||[];
+    if(!devs.length){list.innerHTML='';empty.style.display='block';return}
+    empty.style.display='none';
+    list.innerHTML='';
+    devs.forEach(function(dev){
+      var item=document.createElement('div');
+      item.className='devItem'+(dev.enabled?'':' devItem--off');
+      item.innerHTML='<div class="devItem__info">'
+        +'<div class="devItem__name">'+esc(dev.name||dev.ip)+'</div>'
+        +'<div class="devItem__ip">'+esc(dev.ip)+'</div>'
+        +'</div>'
+        +'<button class="devItem__toggle'+(dev.enabled?' devItem__toggle--on':'')+'" onclick="toggleDevice(\''+esc(dev.ip)+'\')" title="'+(dev.enabled?'Disable':'Enable')+'"></button>'
+        +'<button class="devItem__del" onclick="removeDevice(\''+esc(dev.ip)+'\')" title="Remove"><i class="fa-solid fa-xmark"></i></button>';
+      list.appendChild(item);
+    });
+  }).catch(function(){});
+}
+
+function addDevice(){
+  var ip=document.getElementById('devIpInp').value.trim();
+  var name=document.getElementById('devNameInp').value.trim();
+  if(!ip){showToast('Enter an IP address');return}
+  if(!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)&&!/^[a-zA-Z0-9\-\.]+$/.test(ip)){showToast('Invalid IP address');return}
+  fetch('/api/devices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add',ip:ip,name:name||ip})})
+  .then(function(r){return r.json()}).then(function(d){
+    if(d.status==='ok'){
+      document.getElementById('devIpInp').value='';
+      document.getElementById('devNameInp').value='';
+      loadDevices();
+      showToast('Device added');
+    }else{
+      showToast(d.message||'Failed to add device');
+    }
+  }).catch(function(){showToast('Connection error')});
+}
+
+function removeDevice(ip){
+  fetch('/api/devices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'remove',ip:ip})})
+  .then(function(r){return r.json()}).then(function(d){
+    loadDevices();
+    showToast('Device removed');
+  }).catch(function(){});
+}
+
+function toggleDevice(ip){
+  fetch('/api/devices',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'toggle',ip:ip})})
+  .then(function(r){return r.json()}).then(function(d){
+    loadDevices();
+    showToast(d.enabled?'Device enabled':'Device disabled');
+  }).catch(function(){});
 }
 
 /* ===== PASSCODE STRENGTH VALIDATOR ===== */

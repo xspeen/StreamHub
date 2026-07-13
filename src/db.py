@@ -131,6 +131,72 @@ class StreamHubDB:
         """Check if a profile file exists and has content."""
         return os.path.exists(self.profile_path) and os.path.getsize(self.profile_path) > 10
 
+    # ---- Device management ----
+
+    def get_devices_path(self):
+        return os.path.join(self.data_dir, "allowed_devices.json")
+
+    def get_allowed_devices(self):
+        """Load allowed devices list. Returns list of device dicts."""
+        path = self.get_devices_path()
+        if os.path.exists(path):
+            try:
+                with open(path, "r") as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+        return []
+
+    def save_allowed_devices(self, devices):
+        """Save allowed devices list."""
+        with open(self.get_devices_path(), "w") as f:
+            json.dump(devices, f, indent=2)
+
+    def add_device(self, ip, name=""):
+        """Add a device to allowed list. Returns (success, message)."""
+        devices = self.get_allowed_devices()
+        ip = ip.strip()
+        if not ip:
+            return False, "IP address required"
+        for d in devices:
+            if d["ip"] == ip:
+                return False, "IP already exists"
+        devices.append({
+            "ip": ip,
+            "name": name or ip,
+            "enabled": True,
+            "added_at": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+        })
+        self.save_allowed_devices(devices)
+        return True, "Device added"
+
+    def remove_device(self, ip):
+        """Remove a device from allowed list."""
+        devices = self.get_allowed_devices()
+        devices = [d for d in devices if d["ip"] != ip]
+        self.save_allowed_devices(devices)
+        return True
+
+    def toggle_device(self, ip):
+        """Toggle a device enabled/disabled. Returns new state."""
+        devices = self.get_allowed_devices()
+        for d in devices:
+            if d["ip"] == ip:
+                d["enabled"] = not d["enabled"]
+                self.save_allowed_devices(devices)
+                return d["enabled"]
+        return None
+
+    def is_device_allowed(self, ip):
+        """Check if a device IP is allowed to access."""
+        devices = self.get_allowed_devices()
+        if not devices:
+            return True  # No devices configured = allow all
+        for d in devices:
+            if d["ip"] == ip:
+                return d.get("enabled", True)
+        return False
+
 
 # Standalone usage for CLI operations
 if __name__ == "__main__":

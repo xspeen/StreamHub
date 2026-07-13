@@ -83,6 +83,26 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             return ""
         return self.rfile.read(length).decode("utf-8", errors="replace")
 
+    def get_client_ip(self):
+        """Get the client's IP address from the request."""
+        # Check X-Forwarded-For first (for proxied requests)
+        xff = self.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[0].strip()
+        # Fall back to connection address
+        addr = self.client_address
+        if addr:
+            return addr[0]
+        return "127.0.0.1"
+
+    def check_device_access(self):
+        """Check if the client IP is allowed. Returns True if allowed."""
+        ip = self.get_client_ip()
+        # Always allow localhost/loopback
+        if ip in ("127.0.0.1", "::1", "localhost"):
+            return True
+        return self.db.is_device_allowed(ip)
+
     def handle_get(self, path, query):
         """Handle GET requests."""
         # Root - serve index.html
@@ -96,7 +116,6 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             rel_path = path[5:]
             file_path = os.path.join(self.web_dir, rel_path)
             if os.path.isfile(file_path):
-                # Determine content type
                 ext = os.path.splitext(file_path)[1].lower()
                 ct = {
                     ".html": "text/html; charset=utf-8",
@@ -119,11 +138,27 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             self.send_json(profile)
             return
 
-        # API: Get categories
+        # API: Get my IP (for the client to know its own IP)
+        if path == "/api/myip":
+            self.send_json({"ip": self.get_client_ip()})
+            return
+
+        # API: Get allowed devices (admin only)
+        if path == "/api/devices":
+            if not self.check_device_access():
+                self.send_json({"error": "Access denied"}, 403)
+                return
+            devices = self.db.get_allowed_devices()
+            self.send_json({"devices": devices})
+            return
+
+        # API: Get categories (requires device access)
         if path == "/api/categories":
+            if not self.check_device_access():
+                self.send_json({"error": "Access denied"}, 403)
+                return
             from scanner import build_categories
             cats = build_categories()
-            # Simplify for client - remove codes arrays
             simple_cats = []
             for c in cats:
                 simple_cats.append({
@@ -135,8 +170,11 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             self.send_json(simple_cats)
             return
 
-        # API: Get channels
+        # API: Get channels (requires device access)
         if path == "/api/channels":
+            if not self.check_device_access():
+                self.send_json({"error": "Access denied"}, 403)
+                return
             cat_id = query.get("category", [""])[0]
             if not cat_id:
                 self.send_json({"error": "category parameter required"}, 400)
@@ -155,16 +193,13 @@ class StreamHubHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Unknown category"}, 404)
                 return
 
-            # Check cache
             cached = self.db.get_cached_channels()
             if cached and cat_id in cached:
                 self.send_json(cached[cat_id])
                 return
 
-            # Fetch fresh
             channels = fetch_category_channels(cat)
 
-            # Update cache
             cache = self.db.get_cached_channels() or {}
             cache[cat_id] = channels
             self.db.save_channel_cache(cache)
@@ -172,7 +207,6 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             self.send_json(channels)
             return
 
-        # 404 for unknown paths
         self.send_error_page(404, "Not Found")
 
     def handle_post(self, path, query):
@@ -188,13 +222,11 @@ class StreamHubHandler(BaseHTTPRequestHandler):
                 return
 
             profile = self.db.get_profile()
-            # Update allowed fields
             if "name" in data:
                 profile["name"] = str(data["name"])[:50]
             if "avatar" in data:
                 profile["avatar"] = str(data["avatar"])[:5]
             if "photo" in data:
-                # Store photo as base64 data URL, limit to 500KB to keep JSON manageable
                 photo = str(data["photo"])
                 if len(photo) > 600000:
                     photo = photo[:600000]
@@ -205,6 +237,44 @@ class StreamHubHandler(BaseHTTPRequestHandler):
 
             self.db.save_profile(profile)
             self.send_json({"status": "ok", "profile": profile})
+            return
+
+        # API: Manage devices (add/remove/toggle)
+        if path == "/api/devices":
+            if not self.check_device_access():
+                self.send_json({"error": "Access denied"}, 403)
+                return
+            try:
+                data = json.loads(body) if body else {}
+            except json.JSONDecodeError:
+                self.send_json({"error": "Invalid JSON"}, 400)
+                return
+
+            action = data.get("action", "")
+
+            if action == "add":
+                ip = data.get("ip", "").strip()
+                name = data.get("name", "").strip()
+                ok, msg = self.db.add_device(ip, name)
+                self.send_json({"status": "ok" if ok else "error", "message": msg})
+                return
+
+            elif action == "remove":
+                ip = data.get("ip", "").strip()
+                self.db.remove_device(ip)
+                self.send_json({"status": "ok"})
+                return
+
+            elif action == "toggle":
+                ip = data.get("ip", "").strip()
+                new_state = self.db.toggle_device(ip)
+                if new_state is not None:
+                    self.send_json({"status": "ok", "enabled": new_state})
+                else:
+                    self.send_json({"status": "error", "message": "Device not found"}, 404)
+                return
+
+            self.send_json({"error": "Unknown action"}, 400)
             return
 
         # API: Auth (verify or change passcode)
