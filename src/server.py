@@ -61,6 +61,10 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             self.send_cors_headers()
+            if content_type.startswith("text/html"):
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
             self.send_header("Content-Length", str(len(content)))
             self.end_headers()
             self.wfile.write(content)
