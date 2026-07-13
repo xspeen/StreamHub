@@ -145,6 +145,17 @@ class StreamHubHandler(BaseHTTPRequestHandler):
             self.send_json({"ip": self.get_client_ip()})
             return
 
+        # API: Get current version
+        if path == "/api/version":
+            ver_path = os.path.join(os.path.dirname(self.data_dir), "VERSION")
+            try:
+                with open(ver_path, "r") as f:
+                    ver = f.read().strip()
+            except IOError:
+                ver = "unknown"
+            self.send_json({"version": ver})
+            return
+
         # API: Get allowed devices (admin only)
         if path == "/api/devices":
             devices = self.db.get_allowed_devices()
