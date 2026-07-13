@@ -147,9 +147,6 @@ class StreamHubHandler(BaseHTTPRequestHandler):
 
         # API: Get allowed devices (admin only)
         if path == "/api/devices":
-            if not self.check_device_access():
-                self.send_json({"error": "Access denied"}, 403)
-                return
             devices = self.db.get_allowed_devices()
             # Clean up stale live IPs (older than 30 seconds)
             now = datetime.datetime.now().timestamp()
@@ -252,9 +249,6 @@ class StreamHubHandler(BaseHTTPRequestHandler):
 
         # API: Manage devices (add/remove/toggle)
         if path == "/api/devices":
-            if not self.check_device_access():
-                self.send_json({"error": "Access denied"}, 403)
-                return
             try:
                 data = json.loads(body) if body else {}
             except json.JSONDecodeError:
