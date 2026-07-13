@@ -2,7 +2,7 @@
 # Usage: irm https://raw.githubusercontent.com/xspeen/StreamHub/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
-$Version = "2.0.2"
+$Version = "2.0.5"
 $Raw = "https://raw.githubusercontent.com/xspeen/StreamHub/main"
 $InstallDir = Join-Path $env:USERPROFILE ".streamhub"
 
@@ -83,22 +83,37 @@ Write-Host ""
 
 # Create PowerShell wrapper
 Write-Host "  Configuring launcher..." -ForegroundColor Yellow
-$wrapper = @"
-`$streamhubPath = "$InstallDir\bin\streamhub"
-if (Test-Path `$streamhubPath) {
-    & bash `$streamhubPath @args
-} else {
-    Write-Host "StreamHub not found. Run the installer again." -ForegroundColor Red
+
+# Find bash
+$bash = $null
+$gitPaths = @(
+    "C:\Program Files\Git\bin\bash.exe",
+    "C:\Program Files (x86)\Git\bin\bash.exe",
+    "$env:LOCALAPPDATA\Programs\Git\bin\bash.exe"
+)
+foreach ($p in $gitPaths) {
+    if (Test-Path $p) { $bash = $p; break }
 }
-"@
-$wrapper | Set-Content -Path (Join-Path $InstallDir "streamhub.ps1") -Encoding UTF8
+if (-not $bash) {
+    try { $bash = (Get-Command bash -ErrorAction SilentlyContinue).Source } catch {}
+}
 
 # Create batch wrapper
-$batchWrapper = @"
+if ($bash) {
+    $batchContent = @"
 @echo off
-"%InstallDir%\bin\streamhub" %*
+setlocal
+"$bash" "$InstallDir\bin\streamhub" %*
 "@
-$batchWrapper | Set-Content -Path (Join-Path $InstallDir "streamhub.bat") -Encoding ASCII
+} else {
+    $batchContent = @"
+@echo off
+setlocal
+python "$InstallDir\src\server.py" --port 8080 --data "$InstallDir\data" --web "$InstallDir\web"
+"@
+}
+$batchContent | Set-Content -Path (Join-Path $InstallDir "streamhub.bat") -Encoding ASCII
+Copy-Item (Join-Path $InstallDir "streamhub.bat") (Join-Path $InstallDir "bin\streamhub.bat") -Force -ErrorAction SilentlyContinue
 
 # Add to PATH
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")

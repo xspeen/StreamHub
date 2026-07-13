@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 :: StreamHub Installer - Windows (CMD)
 :: Usage: curl -sSL https://raw.githubusercontent.com/xspeen/StreamHub/main/install.bat -o install.bat && install.bat
 
-set "VERSION=2.0.2"
+set "VERSION=2.0.5"
 set "REPO=https://github.com/xspeen/StreamHub"
 set "RAW=https://raw.githubusercontent.com/xspeen/StreamHub/main"
 set "INSTALL_DIR=%USERPROFILE%\.streamhub"
@@ -72,12 +72,40 @@ curl -sSL --retry 3 -o "%INSTALL_DIR%\web\index.html" "%RAW%/web/index.html" 2>n
 if %errorlevel% neq 0 goto :dl_error
 
 :: Create wrapper batch file
-echo   [5/6] Configuring PATH...
-(
-    echo @echo off
-    echo setlocal
-    echo "%INSTALL_DIR%\bin\streamhub" %%*
-) > "%INSTALL_DIR%\streamhub.bat"
+echo   [5/6] Configuring launcher...
+:: Find bash (Git Bash or WSL)
+set "BASH="
+if exist "C:\Program Files\Git\bin\bash.exe" (
+    set "BASH=C:\Program Files\Git\bin\bash.exe"
+) else if exist "C:\Program Files (x86)\Git\bin\bash.exe" (
+    set "BASH=C:\Program Files (x86)\Git\bin\bash.exe"
+) else if exist "%LOCALAPPDATA%\Programs\Git\bin\bash.exe" (
+    set "BASH=%LOCALAPPDATA%\Programs\Git\bin\bash.exe"
+) else (
+    where bash >nul 2>&1
+    if %errorlevel% equ 0 (
+        set "BASH=bash"
+    )
+)
+
+if "%BASH%"=="" (
+    echo   [WARNING] Git Bash not found. Trying Python launcher...
+    :: Create a Python-based launcher as fallback
+    (
+        echo @echo off
+        echo setlocal
+        echo python "%INSTALL_DIR%\src\server.py" --port 8080 --data "%INSTALL_DIR%\data" --web "%INSTALL_DIR%\web"
+    ) > "%INSTALL_DIR%\streamhub.bat"
+) else (
+    (
+        echo @echo off
+        echo setlocal
+        echo "%BASH%" "%INSTALL_DIR%\bin\streamhub" %%*
+    ) > "%INSTALL_DIR%\streamhub.bat"
+)
+
+:: Also copy to bin directory
+copy "%INSTALL_DIR%\streamhub.bat" "%INSTALL_DIR%\bin\streamhub.bat" >nul 2>&1
 
 :: Add to user PATH
 for /f "tokens=2*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "CURPATH=%%B"
@@ -101,12 +129,11 @@ echo   ============================================
 echo          INSTALLATION COMPLETE
 echo   ============================================
 echo.
-echo     _____ _               _
-echo    / ____^| ^|             ^| ^|
-echo   ^| (___ ^| ^|__   __ _  __^| ^| _____      _____
-echo    \___ \^| '_ \ / _` ^|/ _` ^|/ _ \ \ /\ / / _ \
-echo    ____) ^| ^| ^| ^| (_^| ^| (_^| ^| (_) \ V  V /  __/
-echo   ^|_____/^|_^| ^|_^|\__,_^|\__,_^|\___/ \_/\_/ \___^|
+echo   _____  _                            _   _       _
+echo  ^| ___ ^|^| ^|_ _ __ ___  __ _ _ __ ___ ^| ^| ^| ^|_   _^| ^|__
+echo  ^| ___ ^|^| __^| '__/ _ \\/ _` ^| '_ ` _ \\\\^| ^|_^| ^| ^| ^| ^| '_ \
+echo  ^| ___ ^|^| ^|_^| ^| ^|  __/ (_^| ^| ^| ^| ^| ^| ^|  _  ^| ^|_^| ^| ^|_) ^|
+echo  ^|_____/ ^|\\__^|_^|  \\___|\\__,_^|_^| ^|_^| ^|_^|_^|_^|_\\__,_^|_.__/
 echo.
 echo   Type 'streamhub' in your terminal to launch.
 echo.

@@ -7,7 +7,7 @@ set -euo pipefail
 REPO="https://github.com/xspeen/StreamHub"
 RAW="https://raw.githubusercontent.com/xspeen/StreamHub/main"
 INSTALL_DIR=""
-VERSION="2.0.2"
+VERSION="2.0.5"
 
 # ---- ANSI Colors (with terminal support check) ----
 setup_colors() {
@@ -184,14 +184,11 @@ install_files() {
     echo -e "  ${BLUE}${BOLD}       INSTALLATION COMPLETE${NC}"
     echo -e "  ${BLUE}${BOLD}============================================${NC}"
     echo ""
-    echo -e "  ${WHITE}"
-    echo "     _____ _               _                   "
-    echo "    / ____| |             | |                  "
-    echo "   | (___ | |__   __ _  __| | _____      _____ "
-    echo "    \___ \| '_ \ / _\` |/ _\` |/ _ \ \ /\ / / _ \\"
-    echo "    ____) | | | | (_| | (_| | (_) \ V  V /  __/"
-    echo "   |_____/|_| |_|\__,_|\__,_|\___/ \_/\_/ \___|"
-    echo -e "  ${NC}"
+    echo -e "  ${CYAN} _____  _                            _   _       _     ${NC}"
+    echo -e "  ${CYAN}| ___ || |_ _ __ ___  __ _ _ __ ___ | | | |_   _| |__  ${NC}"
+    echo -e "  ${CYAN}| ___ || __| '__/ _ \\/ _\` | '_ \` _ \\\\| |_| | | | | '_ \\ ${NC}"
+    echo -e "  ${CYAN}| ___ || |_| | |  __/ (_| | | | | | |  _  | |_| | |_) |${NC}"
+    echo -e "  ${CYAN}|_____ | \\__|_|  \\___|\\__,_|_| |_| |_|_| |_|\\__,_|_.__/ ${NC}"
     echo ""
     echo -e "  ${WHITE}Type ${CYAN}streamhub${WHITE} in your terminal to launch${NC}"
     echo ""
@@ -203,8 +200,24 @@ setup_path() {
         # Termux: bin is already in PATH via $PREFIX/bin
         ln -sf "$INSTALL_DIR/bin/streamhub" "$PREFIX/bin/streamhub" 2>/dev/null || true
     elif [ "$IS_GITBASH" -eq 1 ]; then
-        # Git Bash: add to PATH via profile
-        local bin_line="export PATH=\"${INSTALL_DIR}/bin:\$PATH\""
+        # Git Bash: create .bat wrapper and add to PATH via profile
+        # Find bash.exe for the wrapper
+        local bash_exe=""
+        for bp in "C:/Program Files/Git/bin/bash.exe" "C:/Program Files (x86)/Git/bin/bash.exe" "$LOCALAPPDATA/Programs/Git/bin/bash.exe"; do
+            if [ -f "$bp" ]; then bash_exe="$bp"; break; fi
+        done
+        if [ -z "$bash_exe" ]; then
+            bash_exe="$(command -v bash 2>/dev/null || echo bash)"
+        fi
+        # Create .bat wrapper
+        cat > "$INSTALL_DIR/streamhub.bat" <<BATEOF
+@echo off
+setlocal
+"$bash_exe" "$INSTALL_DIR/bin/streamhub" %*
+BATEOF
+        cp -f "$INSTALL_DIR/streamhub.bat" "$INSTALL_DIR/bin/streamhub.bat" 2>/dev/null || true
+        # Add to PATH via profile
+        local bin_line="export PATH=\"${INSTALL_DIR}:\$PATH\""
         local profile="$HOME/.bash_profile"
         [ ! -f "$profile" ] && profile="$HOME/.profile"
         if ! grep -qF "streamhub" "$profile" 2>/dev/null; then
@@ -212,8 +225,7 @@ setup_path() {
             echo "# StreamHub" >> "$profile"
             echo "$bin_line" >> "$profile"
         fi
-        export PATH="${INSTALL_DIR}/bin:$PATH"
-        ln -sf "$INSTALL_DIR/bin/streamhub" "/usr/local/bin/streamhub" 2>/dev/null || true
+        export PATH="${INSTALL_DIR}:$PATH"
     elif [ "$IS_MACOS" -eq 1 ]; then
         # macOS: try /usr/local/bin, fall back to ~/.local/bin
         if ln -sf "$INSTALL_DIR/bin/streamhub" "/usr/local/bin/streamhub" 2>/dev/null; then
