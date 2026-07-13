@@ -398,7 +398,7 @@ def find_python():
 def main():
     """Start the StreamHub server."""
     parser = argparse.ArgumentParser(description="StreamHub Server")
-    parser.add_argument("--port", type=int, default=8080, help="Port to listen on")
+    parser.add_argument("--port", type=int, default=5000, help="Port to listen on")
     parser.add_argument("--data", type=str, default="", help="Data directory path")
     parser.add_argument("--web", type=str, default="", help="Web directory path")
     args = parser.parse_args()
