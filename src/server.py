@@ -31,6 +31,7 @@ class StreamHubHandler(BaseHTTPRequestHandler):
     data_dir = ""
     web_dir = ""
     db = None
+    live_ips = {}  # ip -> last_seen timestamp
 
     def log_message(self, format, *args):
         """Suppress default request logging for cleaner terminal output."""
@@ -98,9 +99,10 @@ class StreamHubHandler(BaseHTTPRequestHandler):
     def check_device_access(self):
         """Check if the client IP is allowed. Returns True if allowed."""
         ip = self.get_client_ip()
-        # Always allow localhost/loopback
         if ip in ("127.0.0.1", "::1", "localhost"):
             return True
+        # Track live IPs
+        self.__class__.live_ips[ip] = datetime.datetime.now().timestamp()
         return self.db.is_device_allowed(ip)
 
     def handle_get(self, path, query):
@@ -149,7 +151,16 @@ class StreamHubHandler(BaseHTTPRequestHandler):
                 self.send_json({"error": "Access denied"}, 403)
                 return
             devices = self.db.get_allowed_devices()
-            self.send_json({"devices": devices})
+            # Clean up stale live IPs (older than 30 seconds)
+            now = datetime.datetime.now().timestamp()
+            stale = [ip for ip, ts in self.__class__.live_ips.items() if now - ts > 30]
+            for ip in stale:
+                del self.__class__.live_ips[ip]
+            # Also track admin's own IP as live
+            admin_ip = self.get_client_ip()
+            if admin_ip not in ("127.0.0.1", "::1", "localhost"):
+                self.__class__.live_ips[admin_ip] = now
+            self.send_json({"devices": devices, "live_ips": list(self.__class__.live_ips.keys())})
             return
 
         # API: Get categories (requires device access)

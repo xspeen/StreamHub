@@ -228,6 +228,17 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);heig
 .devItem__toggle--on::after{transform:translateX(16px)}
 .devItem__del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--glass-b);border-radius:8px;color:var(--text-d);font-size:10px;cursor:pointer;flex-shrink:0;transition:color .15s,border-color .15s}
 .devItem__del:hover{color:rgba(255,90,90,.8);border-color:rgba(255,90,90,.3)}
+.devItem__live{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent-g);flex-shrink:0;animation:livePulse 2s ease infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.4}}
+.devItem__live--off{background:var(--text-d);box-shadow:none;animation:none}
+
+/* Profile tabs */
+.ppTabs{display:flex;border-bottom:1px solid var(--glass-b);flex-shrink:0;padding:0 8px}
+.ppTab{flex:1;padding:10px 8px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-d);font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:color .2s,border-color .2s}
+.ppTab:hover{color:var(--text)}
+.ppTab--a{color:var(--accent);border-bottom-color:var(--accent)}
+.ppTab i{font-size:12px}
+.ppTabContent{flex:1;overflow-y:auto;padding:20px}
 
 @media(orientation:landscape){.ab{flex-direction:row}.ps{flex:1;display:flex;flex-direction:column;min-width:0}.pw{flex:1;aspect-ratio:auto}.pw video{object-fit:cover !important}.ct{width:300px;flex-shrink:0;border-left:1px solid var(--glass-b)}.na{display:flex}.sh{display:flex}}
 @media(orientation:landscape) and (min-width:900px){.ct{width:340px}}
@@ -272,7 +283,16 @@ button:focus:not(:focus-visible){outline:none}
     <div class="ppPanel__t">Profile</div>
     <button class="ppPanel__close" onclick="closeProfile()"><i class="fa-solid fa-xmark"></i></button>
   </div>
-  <div class="ppPanel__body">
+
+  <!-- Tab Navigation -->
+  <div class="ppTabs" id="ppTabs">
+    <button class="ppTab ppTab--a" data-tab="profile" onclick="switchTab('profile')"><i class="fa-solid fa-user"></i> Profile</button>
+    <button class="ppTab" data-tab="devices" onclick="switchTab('devices')"><i class="fa-solid fa-wifi"></i> Devices</button>
+    <button class="ppTab" data-tab="contact" onclick="switchTab('contact')"><i class="fa-solid fa-headset"></i> Contact</button>
+  </div>
+
+  <!-- Tab: Profile -->
+  <div class="ppPanel__body ppTabContent" id="tabProfile">
     <div class="ppAvatar" id="ppAvatar" onclick="document.getElementById('photoInput').click()" title="Click to change photo">
       <span id="ppAvatarTxt">U</span>
       <div class="ppAvatar__cam"><i class="fa-solid fa-camera"></i></div>
@@ -314,9 +334,14 @@ button:focus:not(:focus-visible){outline:none}
     </div>
 
     <div class="ppDivider"></div>
+    <button class="ppField__btn ppField__btn--alt" style="width:100%;margin-bottom:8px" onclick="logout()"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i> Logout</button>
+    <div class="ppVer">Version 2.0.5</div>
+  </div>
 
-    <div class="ppSection__t">Share / Device Access</div>
-    <div style="font-size:11px;color:var(--text-d);margin-bottom:10px">Add device IPs to share your stream. Only allowed devices can watch.</div>
+  <!-- Tab: Devices -->
+  <div class="ppPanel__body ppTabContent" id="tabDevices" style="display:none">
+    <div class="ppSection__t">Share Stream</div>
+    <div style="font-size:11px;color:var(--text-d);margin-bottom:10px">Add any device IP to share. Works across WiFi, hotspot, or mobile data.</div>
 
     <div class="ppField">
       <div class="ppField__row">
@@ -328,24 +353,36 @@ button:focus:not(:focus-visible){outline:none}
       </div>
     </div>
 
-    <div id="devList" style="margin-top:8px"></div>
-    <div id="devEmpty" style="font-size:11px;color:var(--text-d);text-align:center;padding:12px;display:none">
-      No devices added. Add IPs to share your stream.
-    </div>
-
     <div class="ppDivider"></div>
+    <div class="ppSection__t">Connected Devices</div>
+    <div id="devList" style="margin-top:8px"></div>
+    <div id="devEmpty" style="font-size:11px;color:var(--text-d);text-align:center;padding:16px;display:none">
+      <i class="fa-solid fa-wifi" style="font-size:20px;color:var(--text-d);opacity:.3;display:block;margin-bottom:8px"></i>
+      No devices added yet.<br>Add an IP address above to start sharing.
+    </div>
+  </div>
 
-    <div class="ppSection__t">Developer</div>
-    <a class="ppTgLink" href="https://t.me/royexploit" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+  <!-- Tab: Contact -->
+  <div class="ppPanel__body ppTabContent" id="tabContact" style="display:none">
+    <div class="ppSection__t">Contact Admin</div>
+
+    <a class="ppTgLink" href="https://wa.me/254111575296" target="_blank" rel="noopener" style="margin-bottom:10px">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" style="color:#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       <div>
-        <div class="ppTgLink__text">Contact Developer</div>
+        <div class="ppTgLink__text">WhatsApp</div>
+        <div class="ppTgLink__sub">+254 111 575 296</div>
+      </div>
+    </a>
+
+    <a class="ppTgLink" href="https://t.me/royexploit" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" style="color:#0088cc"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+      <div>
+        <div class="ppTgLink__text">Telegram</div>
         <div class="ppTgLink__sub">@royexploit</div>
       </div>
     </a>
 
     <div class="ppDivider"></div>
-    <button class="ppField__btn ppField__btn--alt" style="width:100%;margin-bottom:12px" onclick="logout()"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i> Logout</button>
     <div class="ppVer">Version 2.0.5</div>
   </div>
 </div>
@@ -585,11 +622,12 @@ function openProfile(){
   document.getElementById('ppPassForm').style.display='none';
   document.getElementById('ppPassErr').textContent='';
   updatePassStr('');
-  loadDevices();
+  switchTab('profile');
 }
 function closeProfile(){
   document.getElementById('ppOverlay').classList.remove('ppOverlay--v');
   document.getElementById('ppPanel').classList.remove('ppPanel--v');
+  stopDevPoll();
 }
 
 /* Logout - clear session and show passcode overlay */
@@ -632,27 +670,45 @@ function saveProfileName(){
 }
 
 /* ===== DEVICE MANAGEMENT ===== */
+var _devPollTimer=null;
+
+function switchTab(tab){
+  document.querySelectorAll('.ppTab').forEach(function(t){t.classList.remove('ppTab--a')});
+  document.querySelector('[data-tab="'+tab+'"]').classList.add('ppTab--a');
+  document.querySelectorAll('.ppTabContent').forEach(function(c){c.style.display='none'});
+  var el=document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(el)el.style.display='';
+  if(tab==='devices'){loadDevices();startDevPoll()}
+  else{stopDevPoll()}
+}
+
 function loadDevices(){
   fetch('/api/devices').then(function(r){return r.json()}).then(function(d){
     var list=document.getElementById('devList');
     var empty=document.getElementById('devEmpty');
     var devs=d.devices||[];
+    var liveIPs=d.live_ips||[];
     if(!devs.length){list.innerHTML='';empty.style.display='block';return}
     empty.style.display='none';
     list.innerHTML='';
     devs.forEach(function(dev){
+      var isLive=liveIPs.indexOf(dev.ip)>-1;
       var item=document.createElement('div');
       item.className='devItem'+(dev.enabled?'':' devItem--off');
-      item.innerHTML='<div class="devItem__info">'
+      item.innerHTML='<div class="devItem__live'+(isLive?'':' devItem__live--off')+'" title="'+(isLive?'Online':'Offline')+'"></div>'
+        +'<div class="devItem__info">'
         +'<div class="devItem__name">'+esc(dev.name||dev.ip)+'</div>'
-        +'<div class="devItem__ip">'+esc(dev.ip)+'</div>'
+        +'<div class="devItem__ip">'+esc(dev.ip)+(isLive?' <span style="color:var(--accent);font-size:9px">LIVE</span>':'')+'</div>'
         +'</div>'
-        +'<button class="devItem__toggle'+(dev.enabled?' devItem__toggle--on':'')+'" onclick="toggleDevice(\''+esc(dev.ip)+'\')" title="'+(dev.enabled?'Disable':'Enable')+'"></button>'
+        +'<button class="devItem__toggle'+(dev.enabled?' devItem__toggle--on':'')+'" onclick="toggleDevice(\''+esc(dev.ip)+'\')" title="'+(dev.enabled?'Block':'Enable')+'"></button>'
         +'<button class="devItem__del" onclick="removeDevice(\''+esc(dev.ip)+'\')" title="Remove"><i class="fa-solid fa-xmark"></i></button>';
       list.appendChild(item);
     });
   }).catch(function(){});
 }
+
+function startDevPoll(){if(!_devPollTimer)_devPollTimer=setInterval(loadDevices,3000)}
+function stopDevPoll(){if(_devPollTimer){clearInterval(_devPollTimer);_devPollTimer=null}}
 
 function addDevice(){
   var ip=document.getElementById('devIpInp').value.trim();

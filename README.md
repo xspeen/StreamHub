@@ -368,6 +368,11 @@ The local server exposes these endpoints:
 ### v2.0.5 -- Latest
 
 **New Features:**
+- Profile tabs: Profile, Devices, Contact (tabbed navigation)
+- Device sharing with IP-based access control (add any IP, works across networks)
+- Live device status indicator (green dot = online, gray = offline)
+- Admin can block/enable individual devices
+- WhatsApp contact link (+254 111 575 296)
 - Auto-update prompt on launch (checks GitHub for newer version, offers update or skip)
 - Profile photo upload from gallery/camera
 - Cast to Smart TV (Chromecast + Presentation API)
@@ -394,6 +399,10 @@ Initial release with channel browsing, HLS playback, profile system, and cross-p
 ## Contact
 
 For support, feedback, or inquiries:
+
+<a href="https://wa.me/254111575296" target="_blank" rel="noopener">
+  <img src="https://img.shields.io/badge/WhatsApp-+254_111_575_296-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="WhatsApp +254111575296">
+</a>
 
 <a href="https://t.me/royexploit" target="_blank" rel="noopener">
   <img src="https://img.shields.io/badge/Telegram-%40royexploit-0088cc?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram @royexploit">
