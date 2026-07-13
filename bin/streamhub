@@ -612,9 +612,15 @@ launch_server() {
         waited=$((waited + 1))
     done
 
-    local url="http://127.0.0.1:${port}"
+    local url="http://${ip}:${port}"
     echo ""
     show_server_url "$url" "$port"
+
+    # Also show localhost URL for same device
+    if [ "$ip" != "127.0.0.1" ]; then
+        echo -e "  ${DIM}  Same device: http://127.0.0.1:${port}${NC}"
+        echo ""
+    fi
 
     # Auto-open browser (works on all platforms)
     open_browser_url "$url" 2>/dev/null

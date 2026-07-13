@@ -346,7 +346,7 @@ def main():
 
     for attempt in range(max_retries):
         try:
-            server = HTTPServer(("127.0.0.1", port), StreamHubHandler)
+            server = HTTPServer(("0.0.0.0", port), StreamHubHandler)
             server.serve_forever()
         except OSError as e:
             if "Address already in use" in str(e) or "errno 98" in str(e).lower():
