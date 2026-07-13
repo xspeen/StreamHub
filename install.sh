@@ -7,7 +7,7 @@ set -euo pipefail
 REPO="https://github.com/xspeen/StreamHub"
 RAW="https://raw.githubusercontent.com/xspeen/StreamHub/main"
 INSTALL_DIR=""
-VERSION="2.0.5"
+VERSION="2.1.0"
 
 # ---- ANSI Colors (with terminal support check) ----
 setup_colors() {

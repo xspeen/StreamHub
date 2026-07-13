@@ -8,7 +8,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/Version-2.0.5-00e5c8?style=for-the-badge&labelColor=0e1118)](#)
+[![Version](https://img.shields.io/badge/Version-2.1.0-00e5c8?style=for-the-badge&labelColor=0e1118)](#)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge&labelColor=0e1118)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.7+-yellow?style=for-the-badge&logo=python&logoColor=white&labelColor=0e1118)](#prerequisites)
 [![Platform](https://img.shields.io/badge/Platform-Linux_%7C_macOS_%7C_Windows_%7C_Android-00e5c8?style=for-the-badge&labelColor=0e1118)](#installation)
@@ -365,7 +365,11 @@ The local server exposes these endpoints:
 
 ## Changelog
 
-### v2.0.5 -- Latest
+### v2.1.0 -- Latest
+
+Profile panel redesign with tabbed navigation (Profile / Devices / Contact), live device status indicators, WhatsApp contact, and server-side IP tracking for real-time online/offline detection.
+
+### v2.0.5
 
 **New Features:**
 - Profile tabs: Profile, Devices, Contact (tabbed navigation)
@@ -424,7 +428,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 <div align="center">
 
-**StreamHub v2.0.5**
+**StreamHub v2.1.0**
 
 Built with care. Free forever.
 

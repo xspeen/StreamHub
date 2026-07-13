@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 :: StreamHub Installer - Windows (CMD)
 :: Usage: curl -sSL https://raw.githubusercontent.com/xspeen/StreamHub/main/install.bat -o install.bat && install.bat
 
-set "VERSION=2.0.5"
+set "VERSION=2.1.0"
 set "REPO=https://github.com/xspeen/StreamHub"
 set "RAW=https://raw.githubusercontent.com/xspeen/StreamHub/main"
 set "INSTALL_DIR=%USERPROFILE%\.streamhub"
