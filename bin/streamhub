@@ -94,7 +94,7 @@ show_loading() {
 }
 
 # ---- Version ----
-VERSION="2.1.0"
+VERSION="2.1.1"
 GITHUB_REPO="xspeen/StreamHub"
 
 # ---- Help ----
@@ -388,48 +388,11 @@ check_for_updates() {
         return 0
     fi
 
-    # New version available - prompt user
-    show_banner
-    echo -e "  ${CYAN}New version available!${NC}"
-    echo -e "  ${DIM}Current:${NC} ${WHITE}v${VERSION}${NC}"
-    echo -e "  ${DIM}Latest:${NC}  ${GREEN}v${remote_version}${NC}"
+    # New version available - notify and continue
     echo ""
-    echo -e "  ${DIM}Press Enter to update, or type 'skip' to continue${NC}"
+    echo -e "  ${CYAN}New version available: v${remote_version}${NC} ${DIM}(current: v${VERSION})${NC}"
+    echo -e "  ${DIM}Run 'streamhub --update' to update.${NC}"
     echo ""
-    read -r -p "    > " choice
-
-    if [ "$choice" = "skip" ] || [ "$choice" = "Skip" ] || [ "$choice" = "SKIP" ]; then
-        echo -e "  ${DIM}  Skipping update...${NC}"
-        echo ""
-        return 0
-    fi
-
-    # Perform the update
-    echo ""
-    echo -e "  ${CYAN}  Updating to v${remote_version}...${NC}"
-    echo ""
-
-    local install_sh
-    install_sh=$(mktemp)
-    if command -v curl >/dev/null 2>&1; then
-        curl -sSL -o "$install_sh" "https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh"
-    elif command -v wget >/dev/null 2>&1; then
-        wget -q -O "$install_sh" "https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh"
-    else
-        echo -e "  ${RED}  Neither curl nor wget found.${NC}"
-        return 1
-    fi
-    chmod +x "$install_sh"
-    bash "$install_sh"
-    rm -f "$install_sh"
-
-    # Show success
-    echo ""
-    show_banner
-    echo -e "  ${GREEN}Updated to v${remote_version} successfully!${NC}"
-    echo -e "  ${DIM}Run 'streamhub' to start the latest version.${NC}"
-    echo ""
-    exit 0
 }
 
 # ---- Update ----
@@ -631,6 +594,16 @@ launch_server() {
 
 # ---- Main ----
 main() {
+    # Kill any stale stopped processes
+    local stale_pids
+    stale_pids=$(pgrep -f "python.*server.py.*$DATA_DIR" 2>/dev/null || true)
+    if [ -n "$stale_pids" ]; then
+        echo "$stale_pids" | while read -r pid; do
+            kill -9 "$pid" 2>/dev/null || true
+        done
+        rm -f "$DATA_DIR/.server_pid" 2>/dev/null
+    fi
+
     local py
     py=$(find_python)
     if [ -z "$py" ]; then
