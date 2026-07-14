@@ -380,7 +380,7 @@ button:focus:not(:focus-visible){outline:none}
     <div class="ppDivider"></div>
     <button class="ppField__btn ppField__btn--alt" style="width:100%;margin-bottom:8px" onclick="logout()"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i> Logout</button>
     <div class="ppDivider"></div>
-    <div class="ppVer" id="ppCurrentVer">Version 3.1.5</div>
+    <div class="ppVer" id="ppCurrentVer">Version 3.2.7</div>
     <div id="ppUpdateBox" style="display:none;margin-top:10px">
       <div class="ppUpdate" id="ppUpdateMsg"></div>
       <div id="ppUpdateAction" style="display:none;text-align:center;margin-top:8px"></div>
@@ -441,7 +441,7 @@ button:focus:not(:focus-visible){outline:none}
     </a>
 
     <div class="ppDivider"></div>
-    <div class="ppVer" id="ppFooterVer">StreamHub v3.1.5</div>
+    <div class="ppVer" id="ppFooterVer">StreamHub v3.2.7</div>
   </div>
 </div>
 
@@ -1006,6 +1006,12 @@ function getFlagUrl(code){
   return 'https://flagcdn.com/24x18/'+code.toLowerCase()+'.png';
 }
 
+var BASE='https://iptv-org.github.io/iptv/';
+var MAX_CH=3000;
+var OV_DUR=2800;
+var RETRY_LIMIT=3;
+var cNames={za:'S. Africa',ng:'Nigeria',ke:'Kenya',gh:'Ghana',ug:'Uganda',tz:'Tanzania',zm:'Zambia',zw:'Zimbabwe',et:'Ethiopia',sn:'Senegal',cm:'Cameroon',ci:'Ivory Coast',mw:'Malawi',mz:'Mozambique',na:'Namibia',bw:'Botswana',sz:'Eswatini',ls:'Lesotho',mg:'Madagascar',ao:'Angola',rw:'Rwanda',so:'Somalia',sd:'Sudan',ne:'Niger',ml:'Mali',bj:'Benin',tg:'Togo',bf:'Burkina Faso',cg:'Congo',cd:'DR Congo',lr:'Liberia',sl:'Sierra Leone',gn:'Guinea',eq:'Eq. Guinea',st:'Sao Tome',cv:'Cape Verde',km:'Comoros',dj:'Djibouti',er:'Eritrea',td:'Chad',cf:'CAR',mr:'Mauritania',ss:'S. Sudan',us:'USA',gb:'UK',in:'India',br:'Brazil',de:'Germany',fr:'France',jp:'Japan',kr:'S. Korea',tr:'Turkey',sa:'Saudi Arabia',pk:'Pakistan',bd:'Bangladesh',id:'Indonesia',ph:'Philippines',mx:'Mexico',ar:'Argentina',co:'Colombia',it:'Italy',es:'Spain',pt:'Portugal',nl:'Netherlands',se:'Sweden',no:'Norway',dk:'Denmark',pl:'Poland',ua:'Ukraine',ru:'Russia',au:'Australia',nz:'New Zealand',ca:'Canada',ae:'UAE',ir:'Iran',iq:'Iraq',my:'Malaysia',th:'Thailand',vn:'Vietnam',cn:'China',tw:'Taiwan',ro:'Romania',bg:'Bulgaria',hu:'Hungary',cz:'Czechia',sk:'Slovakia',si:'Slovenia',hr:'Croatia',rs:'Serbia',ba:'Bosnia',me:'Montenegro',mk:'N. Macedonia',al:'Albania',gr:'Greece',cy:'Cyprus',mt:'Malta',ie:'Ireland',is:'Iceland',fi:'Finland',ee:'Estonia',lv:'Latvia',lt:'Lithuania',lu:'Luxembourg',be:'Belgium',at:'Austria',ch:'Switzerland',cl:'Chile',pe:'Peru',ve:'Venezuela',ec:'Ecuador',uy:'Uruguay',py:'Paraguay',bo:'Bolivia',cr:'Costa Rica',pa:'Panama',gt:'Guatemala',hn:'Honduras',sv:'El Salvador',ni:'Nicaragua',cu:'Cuba',do:'Dominican Rep.',pr:'Puerto Rico',jm:'Jamaica',tt:'Trinidad',bs:'Bahamas',bb:'Barbados',bz:'Belize',gy:'Guyana',sr:'Suriname',sg:'Singapore',lk:'Sri Lanka',np:'Nepal',mm:'Myanmar',kh:'Cambodia',la:'Laos',mv:'Maldives',bt:'Bhutan',mn:'Mongolia',kz:'Kazakhstan',uz:'Uzbekistan',kg:'Kyrgyzstan',tj:'Tajikistan',tm:'Turkmenistan',af:'Afghanistan',sy:'Syria',jo:'Jordan',lb:'Lebanon',ps:'Palestine',ye:'Yemen',om:'Oman',kw:'Kuwait',bh:'Bahrain',qa:'Qatar',ge:'Georgia',am:'Armenia',az:'Azerbaijan',fj:'Fiji',pg:'Papua N.Z.',ws:'Samoa',vu:'Vanuatu',sb:'Solomon Is.'};
+
 /* Build categories */
 var GENRES=['sports','news','movies','entertainment','kids','music','documentary','lifestyle','religion','education'];
 var COUNTRIES=R_AFRICA.split(',').concat(R_EUROPE.split(',')).concat(R_ASIA.split(',')).concat(R_AMER.split(',')).concat(R_ME.split(',')).concat(R_OCE.split(','));
@@ -1031,14 +1037,9 @@ GENRES.forEach(function(g){CATS.push({id:g,name:g.charAt(0).toUpperCase()+g.slic
 var topCats=['ke','ng','za','gh','tz','ug'];
 COUNTRIES.forEach(function(c){if(topCats.indexOf(c)===-1)CATS.push({id:c,name:cNames[c]||c.toUpperCase(),icon:'fa-tower-broadcast',type:'country',flag:c})});
 
-var BASE='https://iptv-org.github.io/iptv/';
-var MAX_CH=3000;
-var OV_DUR=2800;
-var RETRY_LIMIT=3;
-var cNames={za:'S. Africa',ng:'Nigeria',ke:'Kenya',gh:'Ghana',ug:'Uganda',tz:'Tanzania',zm:'Zambia',zw:'Zimbabwe',et:'Ethiopia',sn:'Senegal',cm:'Cameroon',ci:'Ivory Coast',mw:'Malawi',mz:'Mozambique',na:'Namibia',bw:'Botswana',sz:'Eswatini',ls:'Lesotho',mg:'Madagascar',ao:'Angola',rw:'Rwanda',so:'Somalia',sd:'Sudan',ne:'Niger',ml:'Mali',bj:'Benin',tg:'Togo',bf:'Burkina Faso',cg:'Congo',cd:'DR Congo',lr:'Liberia',sl:'Sierra Leone',gn:'Guinea',eq:'Eq. Guinea',st:'Sao Tome',cv:'Cape Verde',km:'Comoros',dj:'Djibouti',er:'Eritrea',td:'Chad',cf:'CAR',mr:'Mauritania',ss:'S. Sudan',us:'USA',gb:'UK',in:'India',br:'Brazil',de:'Germany',fr:'France',jp:'Japan',kr:'S. Korea',tr:'Turkey',sa:'Saudi Arabia',pk:'Pakistan',bd:'Bangladesh',id:'Indonesia',ph:'Philippines',mx:'Mexico',ar:'Argentina',co:'Colombia',it:'Italy',es:'Spain',pt:'Portugal',nl:'Netherlands',se:'Sweden',no:'Norway',dk:'Denmark',pl:'Poland',ua:'Ukraine',ru:'Russia',au:'Australia',nz:'New Zealand',ca:'Canada',ae:'UAE',ir:'Iran',iq:'Iraq',my:'Malaysia',th:'Thailand',vn:'Vietnam',cn:'China',tw:'Taiwan',ro:'Romania',bg:'Bulgaria',hu:'Hungary',cz:'Czechia',sk:'Slovakia',si:'Slovenia',hr:'Croatia',rs:'Serbia',ba:'Bosnia',me:'Montenegro',mk:'N. Macedonia',al:'Albania',gr:'Greece',cy:'Cyprus',mt:'Malta',ie:'Ireland',is:'Iceland',fi:'Finland',ee:'Estonia',lv:'Latvia',lt:'Lithuania',lu:'Luxembourg',be:'Belgium',at:'Austria',ch:'Switzerland',cl:'Chile',pe:'Peru',ve:'Venezuela',ec:'Ecuador',uy:'Uruguay',py:'Paraguay',bo:'Bolivia',cr:'Costa Rica',pa:'Panama',gt:'Guatemala',hn:'Honduras',sv:'El Salvador',ni:'Nicaragua',cu:'Cuba',do:'Dominican Rep.',pr:'Puerto Rico',jm:'Jamaica',tt:'Trinidad',bs:'Bahamas',bb:'Barbados',bz:'Belize',gy:'Guyana',sr:'Suriname',sg:'Singapore',lk:'Sri Lanka',np:'Nepal',mm:'Myanmar',kh:'Cambodia',la:'Laos',mv:'Maldives',bt:'Bhutan',mn:'Mongolia',kz:'Kazakhstan',uz:'Uzbekistan',kg:'Kyrgyzstan',tj:'Tajikistan',tm:'Turkmenistan',af:'Afghanistan',sy:'Syria',jo:'Jordan',lb:'Lebanon',ps:'Palestine',ye:'Yemen',om:'Oman',kw:'Kuwait',bh:'Bahrain',qa:'Qatar',ge:'Georgia',am:'Armenia',az:'Azerbaijan',fj:'Fiji',pg:'Papua N.Z.',ws:'Samoa',vu:'Vanuatu',sb:'Solomon Is.'};
 
 /* State */
-var channels=[],filtered=[],curIdx=-1,curCat='dstv',hlsInst=null,ovTimer=null,toastTmr=null,loading=false,ctrlTmr=null,retUrl='',retIdx=-1,retryCount=0;
+var channels=[],filtered=[],curIdx=-1,curCat='ke',hlsInst=null,ovTimer=null,toastTmr=null,loading=false,ctrlTmr=null,retUrl='',retIdx=-1,retryCount=0;
 
 /* DOM */
 var vid=document.getElementById('vid'),pw=document.getElementById('pw');
@@ -1305,53 +1306,8 @@ function updateNP(ch){var c=CATS.find(function(x){return x.id===curCat});nE.styl
 var _epgCache=null,_epgCacheTime=0,_epgTimer=null;
 function fetchEPG(chName){
   var bar=document.getElementById('epgBar');
-  var empty=document.getElementById('epgEmpty');
   if(!chName){bar.innerHTML='<div class="epg__empty">EPG will appear when a channel is playing</div>';return}
-  bar.innerHTML='<div class="epg__loading"><div class="epg__spin"></div> Loading program guide...</div>';
-  var now=Date.now();
-  if(_epgCache&&(now-_epgCacheTime)<6*60*60*1000){
-    renderEPG(bar,chName,_epgCache);return;
-  }
-  fetch('https://iptv-org.github.io/iptv/epg.xml').then(function(r){return r.text()}).then(function(xml){
-    var parser=new DOMParser();
-    var doc=parser.parseFromString(xml,'text/xml');
-    var channels=doc.querySelectorAll('channel');
-    var programmes=doc.querySelectorAll('programme');
-    var chId=null;
-    channels.forEach(function(ch){
-      var dn=ch.querySelector('display-name');
-      if(dn&&dn.textContent.toLowerCase().indexOf(chName.toLowerCase())>-1){
-        chId=ch.getAttribute('id');
-      }
-    });
-    if(!chId){
-      channels.forEach(function(ch){
-        var dn=ch.querySelector('display-name');
-        if(dn&&dn.textContent.toLowerCase().indexOf(chName.split(' ')[0].toLowerCase())>-1){
-          chId=ch.getAttribute('id');
-        }
-      });
-    }
-    var progs=[];
-    if(chId){
-      var now=new Date();
-      var nowStr=now.toISOString().replace(/[-:]/g,'').replace(/\.\d+Z/,' +0000');
-      programmes.forEach(function(p){
-        if(p.getAttribute('channel')===chId){
-          var title=p.querySelector('title');
-          var start=p.getAttribute('start');
-          var stop=p.getAttribute('stop');
-          if(title&&start&&stop){
-            progs.push({title:title.textContent,start:start,stop:stop});
-          }
-        }
-      });
-    }
-    _epgCache=progs;_epgCacheTime=Date.now();
-    renderEPG(bar,chName,progs);
-  }).catch(function(){
-    bar.innerHTML='<div class="epg__empty">EPG unavailable</div>';
-  });
+  bar.innerHTML='<div class="epg__empty">EPG coming soon</div>';
 }
 
 function renderEPG(bar,chName,progs){
