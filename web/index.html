@@ -1012,28 +1012,22 @@ var COUNTRIES=R_AFRICA.split(',').concat(R_EUROPE.split(',')).concat(R_ASIA.spli
 COUNTRIES=COUNTRIES.filter(function(v,i,a){return a.indexOf(v)===i});
 
 var CATS=[];
-/* Kenya first */
 CATS.push({id:'ke',name:'Kenya',icon:'fa-tower-broadcast',type:'country',flag:'ke'});
-/* DStv & GOtv */
 CATS.push({id:'dstv',name:'DStv',icon:'fa-satellite-dish',type:'dstv',flag:'za'});
 CATS.push({id:'gotv',name:'GOtv',icon:'fa-tv',type:'gotv',flag:'za'});
-/* Top African countries */
 CATS.push({id:'ng',name:'Nigeria',icon:'fa-tower-broadcast',type:'country',flag:'ng'});
 CATS.push({id:'za',name:'South Africa',icon:'fa-tower-broadcast',type:'country',flag:'za'});
 CATS.push({id:'gh',name:'Ghana',icon:'fa-tower-broadcast',type:'country',flag:'gh'});
 CATS.push({id:'tz',name:'Tanzania',icon:'fa-tower-broadcast',type:'country',flag:'tz'});
 CATS.push({id:'ug',name:'Uganda',icon:'fa-tower-broadcast',type:'country',flag:'ug'});
-/* Regions */
 CATS.push({id:'africa',name:'Africa',icon:'fa-globe-africa',type:'region',codes:R_AFRICA.split(','),flag:'za'});
 CATS.push({id:'europe',name:'Europe',icon:'fa-globe-europe',type:'region',codes:R_EUROPE.split(','),flag:'gb'});
 CATS.push({id:'asia',name:'Asia',icon:'fa-globe-asia',type:'region',codes:R_ASIA.split(','),flag:'in'});
 CATS.push({id:'americas',name:'Americas',icon:'fa-globe-americas',type:'region',codes:R_AMER.split(','),flag:'us'});
 CATS.push({id:'mideast',name:'Middle East',icon:'fa-mosque',type:'region',codes:R_ME.split(','),flag:'sa'});
 CATS.push({id:'oceania',name:'Oceania',icon:'fa-water',type:'region',codes:R_OCE.split(','),flag:'au'});
-/* Genres */
 var gIcons={sports:'fa-futbol',news:'fa-newspaper',movies:'fa-film',entertainment:'fa-tv',kids:'fa-child-reaching',music:'fa-music',documentary:'fa-earth-americas',lifestyle:'fa-heart',religion:'fa-place-of-worship',education:'fa-graduation-cap'};
 GENRES.forEach(function(g){CATS.push({id:g,name:g.charAt(0).toUpperCase()+g.slice(1),icon:gIcons[g]||'fa-tv',type:'cat'})});
-/* Remaining countries */
 var topCats=['ke','ng','za','gh','tz','ug'];
 COUNTRIES.forEach(function(c){if(topCats.indexOf(c)===-1)CATS.push({id:c,name:cNames[c]||c.toUpperCase(),icon:'fa-tower-broadcast',type:'country',flag:c})});
 
@@ -1214,7 +1208,6 @@ function filterCh(){
 }
 
 /* Play channel */
-var _failCount=0;
 var _maxFails=3;
 function playCh(idx){
   if(idx<0||idx>=channels.length)return;
