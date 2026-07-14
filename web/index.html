@@ -293,13 +293,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);heig
 button:focus:not(:focus-visible){outline:none}
 /* Fullscreen video fills entire screen in HD */
 .pw:fullscreen{background:#000}
-.pw:fullscreen video{width:100vw;height:100vh;object-fit:contain}
+.pw:fullscreen video{width:100vw;height:100vh;object-fit:cover}
 .pw:fullscreen .pc{opacity:1;z-index:20}
 .pw:fullscreen .co{z-index:20}
-/* Landscape on mobile: clean HD video fill */
+/* Landscape on mobile: complete full screen fill */
 @media(orientation:landscape) and (max-height:500px){
-  .pw video{object-fit:contain !important;width:100%;height:100%}
-  .pw{background:#000}
+  .pw video{object-fit:cover !important;width:100vw;height:100vh}
+  .pw{background:#000;position:fixed;inset:0;z-index:100}
 }
 </style>
 </head>
@@ -376,7 +376,7 @@ button:focus:not(:focus-visible){outline:none}
     <div class="ppDivider"></div>
     <button class="ppField__btn ppField__btn--alt" style="width:100%;margin-bottom:8px" onclick="logout()"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i> Logout</button>
     <div class="ppDivider"></div>
-    <div class="ppVer" id="ppCurrentVer">Version 3.2.8</div>
+    <div class="ppVer" id="ppCurrentVer">Version 3.3.9</div>
     <div id="ppUpdateBox" style="display:none;margin-top:10px">
       <div class="ppUpdate" id="ppUpdateMsg"></div>
       <div id="ppUpdateAction" style="display:none;text-align:center;margin-top:8px"></div>
@@ -437,7 +437,7 @@ button:focus:not(:focus-visible){outline:none}
     </a>
 
     <div class="ppDivider"></div>
-    <div class="ppVer" id="ppFooterVer">StreamHub v3.2.8</div>
+    <div class="ppVer" id="ppFooterVer">StreamHub v3.3.9</div>
   </div>
 </div>
 
@@ -1284,7 +1284,7 @@ var _isFullscreen=false;
 function toggleFS(){
   if(!document.fullscreenElement){
     (pw.requestFullscreen||pw.webkitRequestFullscreen||pw.msRequestFullscreen).call(pw).then(function(){
-      vid.style.width='100vw';vid.style.height='100vh';vid.style.objectFit='contain';
+      vid.style.width='100vw';vid.style.height='100vh';vid.style.objectFit='cover';
       pw.classList.add('sc');_isFullscreen=true;
       if(hlsInst&&hlsInst.levels&&hlsInst.levels.length>0){hlsInst.currentLevel=hlsInst.levels.length-1}
     }).catch(function(){});
@@ -1298,7 +1298,7 @@ function toggleFS(){
 function enterFullscreen(){
   if(!document.fullscreenElement&&pw.requestFullscreen){
     pw.requestFullscreen().then(function(){
-      vid.style.width='100vw';vid.style.height='100vh';vid.style.objectFit='contain';
+      vid.style.width='100vw';vid.style.height='100vh';vid.style.objectFit='cover';
       pw.classList.add('sc');_isFullscreen=true;
       if(hlsInst&&hlsInst.levels&&hlsInst.levels.length>0){hlsInst.currentLevel=hlsInst.levels.length-1}
     }).catch(function(){});
