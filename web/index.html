@@ -282,10 +282,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);heig
 @keyframes lqShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .lq-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.06) 50%,transparent 100%);background-size:200% 100%;animation:lqShimmer 3s ease infinite}
 
-@media(orientation:landscape){.ab{flex-direction:row}.ps{flex:1;display:flex;flex-direction:column;min-width:0}.pw{flex:1;aspect-ratio:auto}.pw video{object-fit:cover !important}.ct{width:300px;flex-shrink:0;border-left:1px solid var(--glass-b)}.na{display:flex}.sh{display:flex}}
+@media(orientation:landscape){.ab{flex-direction:row}.ps{flex:1;display:flex;flex-direction:column;min-width:0}.pw{flex:1;aspect-ratio:auto}.pw video{object-fit:contain !important}.ct{width:300px;flex-shrink:0;border-left:1px solid var(--glass-b)}.na{display:flex}.sh{display:flex}}
 @media(orientation:landscape) and (min-width:900px){.ct{width:340px}}
 @media(orientation:landscape) and (max-height:420px){.ct{width:240px}.hdr{padding:6px 10px}.hb{width:32px;height:32px;font-size:12px}.ci{padding:8px 10px;gap:8px}.ci__i{width:28px;height:28px;font-size:10px}.ci__n{font-size:12px}.tb{padding:6px 10px}.t{padding:5px 12px;font-size:10px}.sw{padding:6px 10px}.nb{padding:6px 10px}}
-@media(orientation:landscape) and (max-height:340px){.nb{display:none}.tb{display:none}.sw{display:none}}
+@media(orientation:landscape) and (max-height:340px){.nb{display:none}.epg{display:none}.tb{display:none}.sw{display:none}}
 @media(min-width:768px) and (orientation:portrait){.cl{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}}
 @media(min-width:1200px) and (orientation:landscape){.ct{width:380px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
@@ -295,13 +295,15 @@ button:focus:not(:focus-visible){outline:none}
 .pw:fullscreen{background:#000}
 .pw:fullscreen video{width:100vw;height:100vh;object-fit:contain}
 .pw:fullscreen .pc{opacity:1}
-/* Landscape on mobile: video fills height */
+/* Landscape on mobile: clean video fill */
 @media(orientation:landscape) and (max-height:500px){
-  .pw video{object-fit:cover !important;width:100%;height:100%}
+  .pw video{object-fit:contain !important;width:100%;height:100%}
   .hdr{display:none}
   .nb{display:none}
+  .epg{display:none}
   .ct{display:none}
   .na{display:flex}
+  .pw{background:#000}
 }
 </style>
 </head>
@@ -378,7 +380,7 @@ button:focus:not(:focus-visible){outline:none}
     <div class="ppDivider"></div>
     <button class="ppField__btn ppField__btn--alt" style="width:100%;margin-bottom:8px" onclick="logout()"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i> Logout</button>
     <div class="ppDivider"></div>
-    <div class="ppVer" id="ppCurrentVer">Version 3.0.5</div>
+    <div class="ppVer" id="ppCurrentVer">Version 3.1.5</div>
     <div id="ppUpdateBox" style="display:none;margin-top:10px">
       <div class="ppUpdate" id="ppUpdateMsg"></div>
       <div id="ppUpdateAction" style="display:none;text-align:center;margin-top:8px"></div>
@@ -439,7 +441,7 @@ button:focus:not(:focus-visible){outline:none}
     </a>
 
     <div class="ppDivider"></div>
-    <div class="ppVer" id="ppFooterVer">StreamHub v3.0.5</div>
+    <div class="ppVer" id="ppFooterVer">StreamHub v3.1.5</div>
   </div>
 </div>
 
@@ -1004,28 +1006,42 @@ function getFlagUrl(code){
   return 'https://flagcdn.com/24x18/'+code.toLowerCase()+'.png';
 }
 
-/* Build categories: dstv, regions, genres, countries */
-var GENRES=['sports','news','movies','entertainment','kids','music','documentary','lifestyle','religion','education','science','travel','cooking'];
+/* Build categories */
+var GENRES=['sports','news','movies','entertainment','kids','music','documentary','lifestyle','religion','education'];
 var COUNTRIES=R_AFRICA.split(',').concat(R_EUROPE.split(',')).concat(R_ASIA.split(',')).concat(R_AMER.split(',')).concat(R_ME.split(',')).concat(R_OCE.split(','));
 COUNTRIES=COUNTRIES.filter(function(v,i,a){return a.indexOf(v)===i});
 
 var CATS=[];
-CATS.push({id:'dstv',name:'DStv',icon:'fa-satellite-dish',type:'dstv'});
-CATS.push({id:'africa',name:'Africa',icon:'fa-globe-africa',type:'region',codes:R_AFRICA.split(',')});
-CATS.push({id:'europe',name:'Europe',icon:'fa-globe-europe',type:'region',codes:R_EUROPE.split(',')});
-CATS.push({id:'asia',name:'Asia',icon:'fa-globe-asia',type:'region',codes:R_ASIA.split(',')});
-CATS.push({id:'americas',name:'Americas',icon:'fa-globe-americas',type:'region',codes:R_AMER.split(',')});
-CATS.push({id:'mideast',name:'Middle East',icon:'fa-mosque',type:'region',codes:R_ME.split(',')});
-CATS.push({id:'oceania',name:'Oceania',icon:'fa-water',type:'region',codes:R_OCE.split(',')});
-var gIcons={sports:'fa-futbol',news:'fa-newspaper',movies:'fa-film',entertainment:'fa-tv',kids:'fa-child-reaching',music:'fa-music',documentary:'fa-earth-americas',lifestyle:'fa-heart',religion:'fa-place-of-worship',education:'fa-graduation-cap',science:'fa-flask',travel:'fa-plane',cooking:'fa-utensils'};
+/* Kenya first */
+CATS.push({id:'ke',name:'Kenya',icon:'fa-tower-broadcast',type:'country',flag:'ke'});
+/* DStv & GOtv */
+CATS.push({id:'dstv',name:'DStv',icon:'fa-satellite-dish',type:'dstv',flag:'za'});
+CATS.push({id:'gotv',name:'GOtv',icon:'fa-tv',type:'gotv',flag:'za'});
+/* Top African countries */
+CATS.push({id:'ng',name:'Nigeria',icon:'fa-tower-broadcast',type:'country',flag:'ng'});
+CATS.push({id:'za',name:'South Africa',icon:'fa-tower-broadcast',type:'country',flag:'za'});
+CATS.push({id:'gh',name:'Ghana',icon:'fa-tower-broadcast',type:'country',flag:'gh'});
+CATS.push({id:'tz',name:'Tanzania',icon:'fa-tower-broadcast',type:'country',flag:'tz'});
+CATS.push({id:'ug',name:'Uganda',icon:'fa-tower-broadcast',type:'country',flag:'ug'});
+/* Regions */
+CATS.push({id:'africa',name:'Africa',icon:'fa-globe-africa',type:'region',codes:R_AFRICA.split(','),flag:'za'});
+CATS.push({id:'europe',name:'Europe',icon:'fa-globe-europe',type:'region',codes:R_EUROPE.split(','),flag:'gb'});
+CATS.push({id:'asia',name:'Asia',icon:'fa-globe-asia',type:'region',codes:R_ASIA.split(','),flag:'in'});
+CATS.push({id:'americas',name:'Americas',icon:'fa-globe-americas',type:'region',codes:R_AMER.split(','),flag:'us'});
+CATS.push({id:'mideast',name:'Middle East',icon:'fa-mosque',type:'region',codes:R_ME.split(','),flag:'sa'});
+CATS.push({id:'oceania',name:'Oceania',icon:'fa-water',type:'region',codes:R_OCE.split(','),flag:'au'});
+/* Genres */
+var gIcons={sports:'fa-futbol',news:'fa-newspaper',movies:'fa-film',entertainment:'fa-tv',kids:'fa-child-reaching',music:'fa-music',documentary:'fa-earth-americas',lifestyle:'fa-heart',religion:'fa-place-of-worship',education:'fa-graduation-cap'};
 GENRES.forEach(function(g){CATS.push({id:g,name:g.charAt(0).toUpperCase()+g.slice(1),icon:gIcons[g]||'fa-tv',type:'cat'})});
-var cNames={za:'S. Africa',ng:'Nigeria',ke:'Kenya',gh:'Ghana',ug:'Uganda',tz:'Tanzania',zm:'Zambia',zw:'Zimbabwe',et:'Ethiopia',sn:'Senegal',cm:'Cameroon',ci:'Ivory Coast',mw:'Malawi',mz:'Mozambique',na:'Namibia',bw:'Botswana',sz:'Eswatini',ls:'Lesotho',mg:'Madagascar',ao:'Angola',rw:'Rwanda',so:'Somalia',sd:'Sudan',ne:'Niger',ml:'Mali',bj:'Benin',tg:'Togo',bf:'Burkina Faso',cg:'Congo',cd:'DR Congo',lr:'Liberia',sl:'Sierra Leone',gn:'Guinea',eq:'Eq. Guinea',st:'Sao Tome',cv:'Cape Verde',km:'Comoros',dj:'Djibouti',er:'Eritrea',td:'Chad',cf:'CAR',mr:'Mauritania',ss:'S. Sudan',us:'USA',gb:'UK',in:'India',br:'Brazil',de:'Germany',fr:'France',jp:'Japan',kr:'S. Korea',tr:'Turkey',sa:'Saudi Arabia',pk:'Pakistan',bd:'Bangladesh',id:'Indonesia',ph:'Philippines',mx:'Mexico',ar:'Argentina',co:'Colombia',it:'Italy',es:'Spain',pt:'Portugal',nl:'Netherlands',se:'Sweden',no:'Norway',dk:'Denmark',pl:'Poland',ua:'Ukraine',ru:'Russia',au:'Australia',nz:'New Zealand',ca:'Canada',ae:'UAE',ir:'Iran',iq:'Iraq',my:'Malaysia',th:'Thailand',vn:'Vietnam',cn:'China',tw:'Taiwan',ro:'Romania',bg:'Bulgaria',hu:'Hungary',cz:'Czechia',sk:'Slovakia',si:'Slovenia',hr:'Croatia',rs:'Serbia',ba:'Bosnia',me:'Montenegro',mk:'N. Macedonia',al:'Albania',gr:'Greece',cy:'Cyprus',mt:'Malta',ie:'Ireland',is:'Iceland',fi:'Finland',ee:'Estonia',lv:'Latvia',lt:'Lithuania',lu:'Luxembourg',be:'Belgium',at:'Austria',ch:'Switzerland',li:'Liechtenstein',cl:'Chile',pe:'Peru',ve:'Venezuela',ec:'Ecuador',uy:'Uruguay',py:'Paraguay',bo:'Bolivia',cr:'Costa Rica',pa:'Panama',gt:'Guatemala',hn:'Honduras',sv:'El Salvador',ni:'Nicaragua',cu:'Cuba',do:'Dominican Rep.',pr:'Puerto Rico',jm:'Jamaica',tt:'Trinidad',bs:'Bahamas',bb:'Barbados',bz:'Belize',gy:'Guyana',sr:'Suriname',sg:'Singapore',lk:'Sri Lanka',np:'Nepal',mm:'Myanmar',kh:'Cambodia',la:'Laos',mv:'Maldives',bt:'Bhutan',mn:'Mongolia',kz:'Kazakhstan',uz:'Uzbekistan',kg:'Kyrgyzstan',tj:'Tajikistan',tm:'Turkmenistan',af:'Afghanistan',sy:'Syria',jo:'Jordan',lb:'Lebanon',ps:'Palestine',ye:'Yemen',om:'Oman',kw:'Kuwait',bh:'Bahrain',qa:'Qatar',ge:'Georgia',am:'Armenia',az:'Azerbaijan',fj:'Fiji',pg:'Papua NG',ws:'Samoa',to:'Tonga',vu:'Vanuatu',sb:'Solomon Is.',ki:'Kiribati',tv:'Tuvalu',nr:'Nauru',pw:'Palau',fm:'Micronesia',mh:'Marshall Is.'};
-COUNTRIES.forEach(function(c){CATS.push({id:c,name:cNames[c]||c.toUpperCase(),icon:'fa-tower-broadcast',type:'country'})});
+/* Remaining countries */
+var topCats=['ke','ng','za','gh','tz','ug'];
+COUNTRIES.forEach(function(c){if(topCats.indexOf(c)===-1)CATS.push({id:c,name:cNames[c]||c.toUpperCase(),icon:'fa-tower-broadcast',type:'country',flag:c})});
 
 var BASE='https://iptv-org.github.io/iptv/';
 var MAX_CH=3000;
 var OV_DUR=2800;
 var RETRY_LIMIT=3;
+var cNames={za:'S. Africa',ng:'Nigeria',ke:'Kenya',gh:'Ghana',ug:'Uganda',tz:'Tanzania',zm:'Zambia',zw:'Zimbabwe',et:'Ethiopia',sn:'Senegal',cm:'Cameroon',ci:'Ivory Coast',mw:'Malawi',mz:'Mozambique',na:'Namibia',bw:'Botswana',sz:'Eswatini',ls:'Lesotho',mg:'Madagascar',ao:'Angola',rw:'Rwanda',so:'Somalia',sd:'Sudan',ne:'Niger',ml:'Mali',bj:'Benin',tg:'Togo',bf:'Burkina Faso',cg:'Congo',cd:'DR Congo',lr:'Liberia',sl:'Sierra Leone',gn:'Guinea',eq:'Eq. Guinea',st:'Sao Tome',cv:'Cape Verde',km:'Comoros',dj:'Djibouti',er:'Eritrea',td:'Chad',cf:'CAR',mr:'Mauritania',ss:'S. Sudan',us:'USA',gb:'UK',in:'India',br:'Brazil',de:'Germany',fr:'France',jp:'Japan',kr:'S. Korea',tr:'Turkey',sa:'Saudi Arabia',pk:'Pakistan',bd:'Bangladesh',id:'Indonesia',ph:'Philippines',mx:'Mexico',ar:'Argentina',co:'Colombia',it:'Italy',es:'Spain',pt:'Portugal',nl:'Netherlands',se:'Sweden',no:'Norway',dk:'Denmark',pl:'Poland',ua:'Ukraine',ru:'Russia',au:'Australia',nz:'New Zealand',ca:'Canada',ae:'UAE',ir:'Iran',iq:'Iraq',my:'Malaysia',th:'Thailand',vn:'Vietnam',cn:'China',tw:'Taiwan',ro:'Romania',bg:'Bulgaria',hu:'Hungary',cz:'Czechia',sk:'Slovakia',si:'Slovenia',hr:'Croatia',rs:'Serbia',ba:'Bosnia',me:'Montenegro',mk:'N. Macedonia',al:'Albania',gr:'Greece',cy:'Cyprus',mt:'Malta',ie:'Ireland',is:'Iceland',fi:'Finland',ee:'Estonia',lv:'Latvia',lt:'Lithuania',lu:'Luxembourg',be:'Belgium',at:'Austria',ch:'Switzerland',cl:'Chile',pe:'Peru',ve:'Venezuela',ec:'Ecuador',uy:'Uruguay',py:'Paraguay',bo:'Bolivia',cr:'Costa Rica',pa:'Panama',gt:'Guatemala',hn:'Honduras',sv:'El Salvador',ni:'Nicaragua',cu:'Cuba',do:'Dominican Rep.',pr:'Puerto Rico',jm:'Jamaica',tt:'Trinidad',bs:'Bahamas',bb:'Barbados',bz:'Belize',gy:'Guyana',sr:'Suriname',sg:'Singapore',lk:'Sri Lanka',np:'Nepal',mm:'Myanmar',kh:'Cambodia',la:'Laos',mv:'Maldives',bt:'Bhutan',mn:'Mongolia',kz:'Kazakhstan',uz:'Uzbekistan',kg:'Kyrgyzstan',tj:'Tajikistan',tm:'Turkmenistan',af:'Afghanistan',sy:'Syria',jo:'Jordan',lb:'Lebanon',ps:'Palestine',ye:'Yemen',om:'Oman',kw:'Kuwait',bh:'Bahrain',qa:'Qatar',ge:'Georgia',am:'Armenia',az:'Azerbaijan',fj:'Fiji',pg:'Papua N.Z.',ws:'Samoa',vu:'Vanuatu',sb:'Solomon Is.'};
 
 /* State */
 var channels=[],filtered=[],curIdx=-1,curCat='dstv',hlsInst=null,ovTimer=null,toastTmr=null,loading=false,ctrlTmr=null,retUrl='',retIdx=-1,retryCount=0;
@@ -1076,6 +1092,7 @@ function getUrls(cat){
   var c=CATS.find(function(x){return x.id===cat});
   if(!c)return[];
   if(c.type==='dstv')return R_AFRICA.split(',').map(function(cc){return BASE+'countries/'+cc+'.m3u'});
+  if(c.type==='gotv')return['ke','ng','za','gh','ug','tz','zm','zw','et','sn','cm'].map(function(cc){return BASE+'countries/'+cc+'.m3u'});
   if(c.type==='region')return c.codes.map(function(cc){return BASE+'countries/'+cc+'.m3u'});
   if(c.type==='cat')return[BASE+'categories/'+c.id+'.m3u'];
   if(c.type==='country')return[BASE+'countries/'+c.id+'.m3u'];
@@ -1084,22 +1101,7 @@ function getUrls(cat){
 
 /* Get flag HTML for a category tab */
 function getFlagHTML(cat){
-  if(cat.type==='dstv'){
-    return '<img class="t__flag" src="'+getFlagUrl('za')+'" alt="" onerror="this.style.display=\'none\'">';
-  }
-  if(cat.type==='country'){
-    return '<img class="t__flag" src="'+getFlagUrl(cat.id)+'" alt="" onerror="this.style.display=\'none\'">';
-  }
-  if(cat.type==='region'){
-    var firstCode='';
-    if(cat.id==='africa')firstCode='za';
-    else if(cat.id==='europe')firstCode='gb';
-    else if(cat.id==='asia')firstCode='in';
-    else if(cat.id==='americas')firstCode='us';
-    else if(cat.id==='mideast')firstCode='sa';
-    else if(cat.id==='oceania')firstCode='au';
-    if(firstCode)return '<img class="t__flag" src="'+getFlagUrl(firstCode)+'" alt="" onerror="this.style.display=\'none\'">';
-  }
+  if(cat.flag)return '<img class="t__flag" src="'+getFlagUrl(cat.flag)+'" alt="" onerror="this.style.display=\'none\'">';
   return '';
 }
 
@@ -1290,7 +1292,6 @@ vid.volume=0.8;
 function toggleFS(){
   if(!document.fullscreenElement){
     (pw.requestFullscreen||pw.webkitRequestFullscreen||pw.msRequestFullscreen).call(pw).then(function(){
-      /* Force video to fill screen in fullscreen mode */
       vid.style.width='100vw';vid.style.height='100vh';vid.style.objectFit='contain';
       pw.classList.add('sc');
     }).catch(function(){});
@@ -1564,17 +1565,20 @@ function handleOrientation(){
   var isLandscape=window.matchMedia('(orientation:landscape)').matches;
   var isSmallScreen=window.innerHeight<500;
   if(isLandscape&&isSmallScreen){
-    /* Mobile landscape: hide UI, video fills screen */
     document.querySelector('.hdr').style.display='none';
     document.querySelector('.ct').style.display='none';
     document.querySelector('.nb').style.display='none';
+    var epgEl=document.querySelector('.epg');if(epgEl)epgEl.style.display='none';
     document.querySelector('.ps').style.flex='1';
+    vid.style.objectFit='contain';
     pw.classList.add('sc');
   }else{
     document.querySelector('.hdr').style.display='';
     document.querySelector('.ct').style.display='';
     document.querySelector('.nb').style.display='';
+    var epgEl2=document.querySelector('.epg');if(epgEl2)epgEl2.style.display='';
     document.querySelector('.ps').style.flex='';
+    vid.style.objectFit='';
   }
 }
 window.addEventListener('orientationchange',handleOrientation);

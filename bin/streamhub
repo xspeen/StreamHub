@@ -94,7 +94,7 @@ show_loading() {
 }
 
 # ---- Version ----
-VERSION="3.0.5"
+VERSION="3.1.5"
 GITHUB_REPO="xspeen/StreamHub"
 
 # ---- Help ----
