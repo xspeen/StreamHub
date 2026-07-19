@@ -2,7 +2,7 @@
 # Usage: irm https://raw.githubusercontent.com/xspeen/StreamHub/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
-$Version = "3.3.9"
+$Version = "3.4.9"
 $Raw = "https://raw.githubusercontent.com/xspeen/StreamHub/main"
 $InstallDir = Join-Path $env:USERPROFILE ".streamhub"
 
