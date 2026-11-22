@@ -1746,13 +1746,29 @@ function fetchMaster(force){
   if(force){masterPromise=null;masterDone=false;master=[]}
   if(masterDone)return Promise.resolve(master);
   if(!masterPromise){
-    masterPromise=fetchText('https://iptv-org.github.io/iptv/index.m3u',30000).then(function(t){
+    var t0=Date.now();
+    /* FIX: the full playlist is ~2.6 MB - the old 30s cap aborted the
+       download halfway on slow mobile links, leaving the grid empty.
+       Give each attempt 2 minutes and retry once before showing the
+       error state (the Retry button re-runs this whole function). */
+    var attempt=function(n){
+      return fetchText('https://iptv-org.github.io/iptv/index.m3u',120000).catch(function(e){
+        console.warn('StreamHub: playlist attempt '+(n+1)+' failed: '+e);
+        if(n>0)throw e;
+        return new Promise(function(r){setTimeout(r,2000)}).then(function(){return attempt(n+1)});
+      });
+    };
+    masterPromise=attempt(0).then(function(t){
       master=parseM3U(t);
       if(!master.length)throw new Error('empty playlist');
       computeCC();
       masterDone=true;
+      console.log('StreamHub: '+master.length+' channels loaded in '+((Date.now()-t0)/1000).toFixed(1)+'s');
       return master;
-    }).catch(function(e){masterPromise=null;throw e});
+    }).catch(function(e){
+      console.warn('StreamHub: playlist failed: '+e);
+      masterPromise=null;throw e;
+    });
   }
   return masterPromise;
 }

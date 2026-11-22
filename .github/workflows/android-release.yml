@@ -134,13 +134,13 @@ jobs:
 
             Built automatically by GitHub Actions from the source at this tag.
 
-            What's new in 1.0.0:
-            - First release: cross-platform live TV app built on the StreamHub splash, landing and streamer pages, pixel-for-pixel as designed
-            - Full live stream playback with HLS (hls.js), quality selection, buffering profiles, picture-in-picture mini player and the TV guide drawer
-            - Channel packages and organization: DStv, GOtv and global live streams across Sports, Movies, News, Kids, Music and General, with continent/country filtering
-            - Phone, tablet and Android TV support in one APK: leanback launcher entry, TV banner, and full D-pad / remote spatial navigation
-            - Frosted-glass design system, light/dark themes, accent colors, custom backgrounds and on-device profiles carried over unchanged from the web pages
-            - Signed with the StreamHub release key (v1, v2 and v3 signature schemes) so installs and updates never hit signature errors
+            What's new in 1.0.1:
+            - True full-screen: the app now runs edge-to-edge with the status and navigation bars hidden, so the StreamHub pages fill the entire display exactly like VidVibe (swipe from an edge to reveal the bars briefly)
+            - Channel list loading fixed: the full playlist is 2.6 MB and the old 30-second limit aborted it halfway on slower mobile connections, leaving the grid empty. Each attempt now gets 2 minutes and is retried automatically before the error state appears
+            - All original splash, landing and streamer pages, logos, layouts and design kept exactly as designed
+
+            Earlier releases:
+            - 1.0.0 first release: cross-platform live TV app built on the StreamHub splash, landing and streamer pages, pixel-for-pixel as designed, with HLS live playback, DStv/GOtv/global channel packages, phone/tablet/Android TV support and D-pad navigation
 
             Assets:
             - `StreamHub-<version>.apk` - universal Android release build (phones, tablets, Android TV)

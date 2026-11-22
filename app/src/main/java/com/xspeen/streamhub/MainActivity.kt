@@ -16,9 +16,12 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 /**
  * Single-activity shell that runs the shared StreamHub web app
@@ -53,8 +56,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // Keep the screen on while watching live TV.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        window.statusBarColor = ContextCompat.getColor(this, R.color.window_bg)
-        window.navigationBarColor = ContextCompat.getColor(this, R.color.window_bg)
+        // Full screen like VidVibe: edge-to-edge with transparent system bars,
+        // then the bars are hidden so the WebView owns the entire display.
+        // A swipe from any edge brings them back for a moment (immersive
+        // sticky), so the clock / back gesture stay reachable.
+        enableEdgeToEdge()
+        enterImmersive()
 
         webView = WebView(this)
         setContentView(webView)
@@ -171,6 +178,22 @@ class MainActivity : AppCompatActivity() {
     private fun isAssetUrl(url: String): Boolean =
         url.startsWith("file:///android_asset/") || url.startsWith("about:")
 
+    /** Hide the status and navigation bars; an edge swipe reveals them briefly. */
+    private fun enterImmersive() {
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Returning from another app or the fullscreen video must not leave
+        // the bars visible again.
+        if (hasFocus) enterImmersive()
+    }
+
     /**
      * TV remote / phone back:
      * 1. leave fullscreen video first,
@@ -202,6 +225,7 @@ class MainActivity : AppCompatActivity() {
         @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = savedSystemUiVisibility
         webView.visibility = View.VISIBLE
+        enterImmersive()
     }
 
     /**
@@ -245,6 +269,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::webView.isInitialized) webView.onResume()
+        enterImmersive()
     }
 
     override fun onDestroy() {
