@@ -3396,6 +3396,8 @@ layoutSync=function(){
   var saved='dark';
   try{saved=localStorage.getItem('sh-theme')||'dark'}catch(e){}
   applyTheme(saved);
+  /* reaching the app means the landing page has been seen at least once */
+  try{localStorage.setItem('sh-landing-seen','1')}catch(e){}
   layoutSync();
   setTab('home');
   window.addEventListener('load',measure); /* final safety: re-measure hero padding once fonts/images settle */

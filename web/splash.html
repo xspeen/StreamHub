@@ -171,8 +171,20 @@ setTimeout(function(){ sp.classList.add('s4') }, 5200);
 // phase 5 → full fade-out — hook your navigation here
 setTimeout(function(){
   sp.classList.add('out');
-  // ← replace this with your page transition, e.g.:
-  setTimeout(function(){ window.location.href = 'landing.html'; }, 800);
+  // The landing page is a one-time introduction for brand-new users.
+  // After the user has passed it once (flag set by landing/app), every
+  // later launch goes straight from this splash into the app.
+  setTimeout(function(){
+    var seen=false;
+    try{
+      seen=!!(localStorage.getItem('sh-landing-seen')||
+              localStorage.getItem('sh-theme')||
+              localStorage.getItem('sh-profile')||
+              localStorage.getItem('sh-setup')||
+              localStorage.getItem('sh-listcache-home'));
+    }catch(e){}
+    window.location.href = seen ? 'app.html' : 'landing.html';
+  }, 800);
 }, 6400);
 </script>
 </body>

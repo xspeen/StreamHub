@@ -1160,6 +1160,9 @@ html[data-theme="light"] .onboard{background:rgba(238,244,252,.55)}
 /* ── LAUNCH (app entry point — no popup/toast) ── */
 function launch(btn){
   /* Wire your app entry here — e.g. window.location.href = 'app.html' */
+  /* One-time landing: remember that the user has passed the landing page
+     so future launches skip it (splash goes straight to app.html). */
+  try{localStorage.setItem('sh-landing-seen','1')}catch(e){}
   setTimeout(function(){ window.location.href = 'app.html'; }, 600);
   var ico=btn && btn.querySelector('i');
   if(ico && !btn.dataset.busy){

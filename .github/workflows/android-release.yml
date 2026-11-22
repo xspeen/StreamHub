@@ -134,11 +134,11 @@ jobs:
 
             Built automatically by GitHub Actions from the source at this tag.
 
-            What's new in 1.0.2:
-            - One landing page only: the app now opens straight from your original landing page into the channel grid - the duplicate in-app splash animation and setup guide are gone
-            - Clean "Connecting to stream..." state: the loading veil stays up until the feed is really playing (including while zapping between channels), with no smeary blurred background bleeding through
+            What's new in 1.0.3:
+            - One-time landing page: brand-new users see the landing page once, then every later launch shows only the splash and opens straight into the app
 
             Earlier releases:
+            - 1.0.2: single landing page (duplicate in-app splash and setup guide removed) plus a clean "Connecting to stream..." veil that stays up until the feed is really playing, with no smeary blurred background bleeding through
             - 1.0.1: true full-screen edge-to-edge immersive display like VidVibe; channel list loading fixed (2-minute allowance per attempt plus an automatic retry instead of the 30-second cutoff that left the grid empty)
             - 1.0.0 first release: cross-platform live TV app built on the StreamHub splash, landing and streamer pages, pixel-for-pixel as designed, with HLS live playback, DStv/GOtv/global channel packages, phone/tablet/Android TV support and D-pad navigation
 
