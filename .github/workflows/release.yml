@@ -135,7 +135,7 @@ jobs:
         run: brew install xcodegen
 
       - name: Generate Xcode project
-        run: xcodegen --project ios
+        run: xcodegen --spec ios/project.yml
 
       - name: Archive real iOS device build
         env:
