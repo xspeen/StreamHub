@@ -125,7 +125,7 @@ jobs:
   ios:
     name: iOS (real device build, unsigned IPA)
     needs: version
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 60
     steps:
       - name: Checkout
