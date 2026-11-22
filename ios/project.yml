@@ -1,0 +1,36 @@
+name: StreamHub
+options:
+  bundleIdPrefix: com.xspeen
+  deploymentTarget:
+    iOS: "14.0"
+  createIntermediateGroups: true
+
+targets:
+  StreamHub:
+    type: application
+    platform: iOS
+    sources:
+      - path: StreamHub
+      # Same shared web app the Android build ships, copied into the bundle.
+      - path: ../web
+        buildPhase: resources
+    info:
+      path: StreamHub/Info.plist
+      properties:
+        CFBundleDisplayName: StreamHub
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIRequiresFullScreen: false
+        # Live IPTV feeds are commonly plain http://
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.xspeen.streamhub
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.0"
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "1.0.0"

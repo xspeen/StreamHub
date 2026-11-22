@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07090f">
+<title>StreamHub — Splash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+
+:root{
+  --bg:#07090f;--bg2:#0b101b;
+  --text:#eef2fa;--muted:#8b95a9;
+  --accent:#00e5c8;
+  --accent-soft:rgba(0,229,200,.14);
+  --accent-glow:rgba(0,229,200,.26);
+}
+
+/* ── BACKGROUND ── */
+.bg{
+  position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,var(--bg2),var(--bg) 60%);
+}
+.bg::before,.bg::after{
+  content:'';position:absolute;border-radius:50%;filter:blur(80px);
+  animation:orbDrift 24s ease-in-out infinite alternate;
+}
+.bg::before{
+  width:70vmax;height:70vmax;top:-30%;left:-25%;
+  background:radial-gradient(circle,var(--accent-soft),transparent 65%);opacity:.7;
+}
+.bg::after{
+  width:60vmax;height:60vmax;bottom:-35%;right:-20%;
+  background:radial-gradient(circle,rgba(96,100,255,.12),transparent 65%);
+  opacity:.6;animation-duration:30s;animation-direction:alternate-reverse;
+}
+@keyframes orbDrift{to{transform:translate(8%,10%) scale(1.1)}}
+
+/* grain */
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px;opacity:.04;mix-blend-mode:overlay;
+}
+
+/* ── SPLASH ── */
+.splash{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+
+/* slow sheen sweep */
+.splash::after{
+  content:'';position:absolute;inset:-40%;pointer-events:none;
+  background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.045) 50%,transparent 58%);
+  animation:splashSheen 3.4s ease-in-out .6s 2;
+}
+@keyframes splashSheen{0%{transform:translateX(-46%)}55%,100%{transform:translateX(46%)}}
+
+/* logo + wordmark row */
+.splash__row{
+  display:flex;align-items:center;position:relative;z-index:2;
+}
+
+.splash__logo{
+  flex-shrink:0;
+  filter:drop-shadow(0 12px 36px var(--accent-glow));
+  animation:logoPulse 2.4s ease-in-out infinite;
+  transition:transform .9s cubic-bezier(.22,.61,.36,1);
+}
+.splash__logo svg{
+  width:clamp(60px,15vmin,88px);
+  height:clamp(60px,15vmin,88px);
+  display:block;
+}
+@keyframes logoPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+/* phase 2: logo slides left */
+.splash.s2 .splash__logo{
+  transform:translateX(clamp(-18px,-2.6vmin,-10px));
+  animation:none;
+}
+
+/* wordmark slides in from right */
+.splash__name{
+  display:flex;align-items:baseline;
+  font-weight:900;letter-spacing:.14em;
+  font-size:clamp(28px,7vmin,52px);
+  color:var(--text);white-space:nowrap;
+  max-width:0;opacity:0;transform:translateX(32px);filter:blur(6px);overflow:hidden;
+  transition:
+    max-width .85s cubic-bezier(.22,.61,.36,1),
+    opacity .85s ease,
+    transform .85s cubic-bezier(.22,.61,.36,1),
+    filter .85s ease,
+    margin .85s cubic-bezier(.22,.61,.36,1);
+}
+.splash__name b{color:var(--accent)}
+.splash.s2 .splash__name{
+  max-width:62vw;opacity:1;transform:none;filter:blur(0);
+  margin-left:clamp(12px,2.8vmin,20px);
+}
+
+/* tagline rises up */
+.splash__tag{
+  position:relative;z-index:2;
+  margin-top:clamp(14px,3vmin,22px);
+  font-size:clamp(10px,2.2vmin,14px);font-weight:600;
+  letter-spacing:.38em;text-transform:uppercase;color:var(--muted);
+  opacity:0;transform:translateY(10px);
+  transition:opacity .7s ease,transform .7s ease;
+}
+.splash.s3 .splash__tag{opacity:1;transform:none}
+
+/* phase 4: name collapses, logo recentres and grows */
+.splash.s4 .splash__name{
+  max-width:0;opacity:0;margin-left:0;
+  filter:blur(6px);transform:translateX(10px);
+}
+.splash.s4 .splash__logo{transform:scale(1.16)}
+.splash.s4 .splash__tag{opacity:0;transform:translateY(-8px)}
+
+/* phase 5: whole splash fades out */
+.splash.out{
+  opacity:0;transform:scale(1.06);pointer-events:none;
+  transition:opacity .75s ease,transform .75s cubic-bezier(.22,.61,.36,1);
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grain"></div>
+
+<div class="splash" id="splash">
+  <div class="splash__row">
+    <span class="splash__logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#00e5c8"/>
+            <stop offset="1" stop-color="#005a4e"/>
+          </linearGradient>
+        </defs>
+        <rect width="48" height="48" rx="13" fill="url(#lg)"/>
+        <path d="M12 34L21 14H28.5L19.5 34H12Z" fill="#04120f"/>
+        <path d="M21 34L30 14H37.5L28.5 34H21Z" fill="#04120f" opacity=".42"/>
+      </svg>
+    </span>
+    <span class="splash__name">STREAM<b>HUB</b></span>
+  </div>
+  <div class="splash__tag">Your World, Live</div>
+</div>
+
+<script>
+var sp = document.getElementById('splash');
+
+// phase 1 → logo breathes (2.8s)
+// phase 2 → logo slides left, wordmark slides in
+setTimeout(function(){ sp.classList.add('s2') }, 2800);
+// phase 3 → tagline rises
+setTimeout(function(){ sp.classList.add('s3') }, 3900);
+// phase 4 → wordmark collapses, logo recentres
+setTimeout(function(){ sp.classList.add('s4') }, 5200);
+// phase 5 → full fade-out — hook your navigation here
+setTimeout(function(){
+  sp.classList.add('out');
+  // ← replace this with your page transition, e.g.:
+  setTimeout(function(){ window.location.href = 'landing.html'; }, 800);
+}, 6400);
+</script>
+</body>
+</html>
