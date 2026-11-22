@@ -1,0 +1,11 @@
+{
+  "name": "streamhub-windows",
+  "private": true,
+  "version": "1.0.4",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}

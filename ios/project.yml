@@ -2,13 +2,19 @@ name: StreamHub
 options:
   bundleIdPrefix: com.xspeen
   deploymentTarget:
-    iOS: "14.0"
+    iOS: "15.0"
   createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    GENERATE_INFOPLIST_FILE: NO
 
 targets:
   StreamHub:
     type: application
     platform: iOS
+    deploymentTarget: "15.0"
     sources:
       - path: StreamHub
       # Same shared web app the Android build ships, copied into the bundle.
@@ -18,19 +24,42 @@ targets:
       path: StreamHub/Info.plist
       properties:
         CFBundleDisplayName: StreamHub
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
+        # Full-screen StreamHub experience: status bar hidden, no split view.
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: true
+        UIViewControllerBasedStatusBarAppearance: false
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         # Live IPTV feeds are commonly plain http://
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        ITSAppUsesNonExemptEncryption: false
+        # Keep live audio playing with the screen locked.
+        UIBackgroundModes:
+          - audio
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.xspeen.streamhub
+        MARKETING_VERSION: "1.0.4"
+        CURRENT_PROJECT_VERSION: "10004"
         TARGETED_DEVICE_FAMILY: "1,2"
-        SWIFT_VERSION: "5.0"
-        CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: "1.0.0"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+
+schemes:
+  StreamHub:
+    build:
+      targets:
+        StreamHub: all
+    archive:
+      config: Release

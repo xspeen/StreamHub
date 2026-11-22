@@ -7,4 +7,7 @@ local.properties
 dist/
 ios/*.xcodeproj
 ios/*.xcworkspace
+ios/StreamHub/Info.plist
 xcuserdata/
+windows/node_modules/
+windows/src-tauri/target/

@@ -30,8 +30,8 @@ android {
         minSdk = 24
         targetSdk = 34
         // CI overrides these from the release tag (-PversionName / -PversionCode)
-        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 10003
-        versionName = project.findProperty("versionName") as String? ?: "1.0.3"
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 10004
+        versionName = project.findProperty("versionName") as String? ?: "1.0.4"
 
         vectorDrawables {
             useSupportLibrary = true

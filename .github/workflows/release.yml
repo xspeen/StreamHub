@@ -1,0 +1,308 @@
+name: Release (Android + iOS + Windows)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example 1.0.4 (required for manual runs)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      code: ${{ steps.ver.outputs.code }}
+    steps:
+      - name: Resolve
+        id: ver
+        env:
+          TAG: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          INPUT: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+          V=""
+          if [ "$IS_TAG" = "true" ]; then V="${TAG#v}"
+          elif [ -n "${INPUT:-}" ]; then V="$INPUT"; fi
+          if [ -z "$V" ]; then
+            echo "::error::No version: push a v* tag or pass the version input."
+            exit 1
+          fi
+          IFS='.' read -r MA MI PA <<< "$V"
+          CODE=$(( ${MA:-0} * 10000 + ${MI:-0} * 100 + ${PA:-0} ))
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Building StreamHub $V (versionCode $CODE)"
+
+  android:
+    name: Android (signed release APK)
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build release APK
+        run: |
+          ./gradlew :app:assembleRelease --stacktrace \
+            -PversionName=${{ needs.version.outputs.version }} \
+            -PversionCode=${{ needs.version.outputs.code }}
+
+      - name: Collect APK
+        run: |
+          V="${{ needs.version.outputs.version }}"
+          mkdir -p release-artifacts
+          find app/build/outputs/apk/release -name '*.apk' -exec cp {} "release-artifacts/StreamHub-$V.apk" \;
+          ls -lh release-artifacts
+
+      - name: Verify release APK signature
+        run: |
+          APK=$(ls release-artifacts/*.apk)
+          SDK_ROOT="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          APKSIGNER=$(ls "$SDK_ROOT"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+          if [ ! -x "$APKSIGNER" ]; then
+            SDKMANAGER=$(ls "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1)
+            yes | "$SDKMANAGER" "build-tools;35.0.0" >/dev/null
+            APKSIGNER="$SDK_ROOT/build-tools/35.0.0/apksigner"
+          fi
+          echo "Using $APKSIGNER"
+          "$APKSIGNER" verify "$APK"
+          # Check the JAR signature too by verifying against API 23.
+          "$APKSIGNER" verify --verbose --print-certs --min-sdk-version 23 "$APK" | tee apk-signature.txt
+          if ! grep -q "Verified using v1 scheme (JAR signing): true" apk-signature.txt; then
+            echo "::error::Release APK is missing the v1 JAR signature."
+            exit 1
+          fi
+          if ! grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" apk-signature.txt; then
+            echo "::error::Release APK is missing the v2 signature."
+            exit 1
+          fi
+          ACTUAL=$(grep -m1 "certificate SHA-256 digest" apk-signature.txt | awk '{print $NF}' | tr 'A-F' 'a-f')
+          EXPECTED="1a264afc0cd58656eae8268b837cfa6847fcfae4787104312fe683c45a39bf3f"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::error::Release APK is signed with the wrong key ($ACTUAL)."
+            exit 1
+          fi
+          echo "Release APK is signed with the StreamHub release key."
+
+      - name: Verify web app assets inside the APK
+        run: |
+          APK=$(ls release-artifacts/*.apk)
+          LISTING=$(unzip -l "$APK")
+          for asset in assets/splash.html assets/landing.html assets/app.html; do
+            if ! echo "$LISTING" | grep -q "$asset"; then
+              echo "::error::APK is missing $asset"
+              exit 1
+            fi
+            echo "Found $asset"
+          done
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreamHub-apk
+          path: release-artifacts/*
+          if-no-files-found: error
+
+  ios:
+    name: iOS (real device build, unsigned IPA)
+    needs: version
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen --project ios
+
+      - name: Archive real iOS device build
+        env:
+          V: ${{ needs.version.outputs.version }}
+          CODE: ${{ needs.version.outputs.code }}
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project ios/StreamHub.xcodeproj \
+            -scheme StreamHub \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/build/StreamHub.xcarchive" \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION="$V" \
+            CURRENT_PROJECT_VERSION="$CODE"
+
+      - name: Package unsigned .ipa
+        env:
+          V: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/Payload
+          cp -R build/StreamHub.xcarchive/Products/Applications/StreamHub.app build/Payload/
+          (cd build && zip -qry "StreamHub-$V-ios.ipa" Payload)
+          ls -lh "build/StreamHub-$V-ios.ipa"
+          # sanity: the bundled pages must be inside the .app
+          unzip -l "build/StreamHub-$V-ios.ipa" | grep -q "Payload/StreamHub.app/splash.html"
+          echo "Bundled web assets verified"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreamHub-ipa
+          path: build/StreamHub-${{ needs.version.outputs.version }}-ios.ipa
+          if-no-files-found: error
+
+  windows:
+    name: Windows (Tauri NSIS installer)
+    needs: version
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set version in Tauri config
+        shell: bash
+        env:
+          V: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          node -e 'const fs=require("fs");const v=process.env.V;
+            const cp="windows/src-tauri/tauri.conf.json";
+            const conf=JSON.parse(fs.readFileSync(cp,"utf8"));
+            conf.version=v;
+            fs.writeFileSync(cp,JSON.stringify(conf,null,2)+"\n");
+            const tp="windows/src-tauri/Cargo.toml";
+            fs.writeFileSync(tp,fs.readFileSync(tp,"utf8").replace(/^version = .*$/m,`version = "${v}"`));
+            console.log("version set to",v)'
+
+      - name: Install Tauri CLI
+        shell: bash
+        working-directory: windows
+        run: npm install --no-audit --no-fund
+
+      - name: Build installer
+        shell: bash
+        working-directory: windows
+        run: npx tauri build
+
+      - name: Collect installer
+        shell: bash
+        env:
+          V: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-artifacts
+          cp windows/src-tauri/target/release/bundle/nsis/*-setup.exe \
+             "release-artifacts/StreamHub-$V-windows-x64-setup.exe"
+          ls -lh release-artifacts
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreamHub-installer
+          path: release-artifacts/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: [version, android, ios, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Source zip and checksums
+        env:
+          V: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git archive --format=zip --prefix="StreamHub-$V/" \
+            -o "release-artifacts/StreamHub-$V-src.zip" HEAD
+          cd release-artifacts
+          sha256sum \
+            "StreamHub-$V.apk" \
+            "StreamHub-$V-ios.ipa" \
+            "StreamHub-$V-windows-x64-setup.exe" \
+            "StreamHub-$V-src.zip" > SHA256SUMS.txt
+          ls -lh
+          cat SHA256SUMS.txt
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          body: |
+            StreamHub v${{ needs.version.outputs.version }}
+
+            Real native builds for every platform - assembled automatically by
+            GitHub Actions from the source at this tag. No simulators, no mocks.
+
+            **Android - phone, tablet, Android TV**
+            - `StreamHub-${{ needs.version.outputs.version }}.apk` - signed release (v1+v2+v3)
+            1. Download the APK to your Android device and open it.
+            2. Allow installs from unknown sources when prompted.
+            3. Updates install over the previous version (same key, no uninstall needed).
+            - Android TV: copy the APK to the device or `adb install StreamHub-${{ needs.version.outputs.version }}.apk`.
+            - "problem parsing the package" / "app not installed": check the file size against `SHA256SUMS.txt` - a truncated download is the usual cause. Signature error while updating: uninstall the old build first.
+
+            **iOS - iPhone / iPad**
+            - `StreamHub-${{ needs.version.outputs.version }}-ios.ipa` - real Release build for devices, unsigned (signing happens in your sideloader with your Apple ID):
+            - SideStore / AltStore (recommended; re-signs on install, refresh every 7 days)
+            - Sideloadly (Windows/macOS)
+            - TrollStore (supported devices only - permanent install)
+            - Xcode: Window > Devices and Simulators > drag the app in
+
+            **Windows - laptop / desktop (x64)**
+            - `StreamHub-${{ needs.version.outputs.version }}-windows-x64-setup.exe` - NSIS installer
+            1. Run the installer (WebView2 runtime installs automatically if missing).
+            2. If Windows SmartScreen appears: More info > Run anyway.
+
+            **Verify downloads**
+            - `SHA256SUMS.txt` covers every file above: `sha256sum -c SHA256SUMS.txt`
+
+            **Source**
+            - `StreamHub-${{ needs.version.outputs.version }}-src.zip` - full source tree at this tag
+
+            iOS builds are packaged unsigned (Apple requires signing per device - use a sideloader above). The Windows installer is unsigned, so SmartScreen may warn on first run.
+
+            StreamHub is free and open source under the MIT License.
