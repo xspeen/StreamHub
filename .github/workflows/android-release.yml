@@ -134,12 +134,12 @@ jobs:
 
             Built automatically by GitHub Actions from the source at this tag.
 
-            What's new in 1.0.1:
-            - True full-screen: the app now runs edge-to-edge with the status and navigation bars hidden, so the StreamHub pages fill the entire display exactly like VidVibe (swipe from an edge to reveal the bars briefly)
-            - Channel list loading fixed: the full playlist is 2.6 MB and the old 30-second limit aborted it halfway on slower mobile connections, leaving the grid empty. Each attempt now gets 2 minutes and is retried automatically before the error state appears
-            - All original splash, landing and streamer pages, logos, layouts and design kept exactly as designed
+            What's new in 1.0.2:
+            - One landing page only: the app now opens straight from your original landing page into the channel grid - the duplicate in-app splash animation and setup guide are gone
+            - Clean "Connecting to stream..." state: the loading veil stays up until the feed is really playing (including while zapping between channels), with no smeary blurred background bleeding through
 
             Earlier releases:
+            - 1.0.1: true full-screen edge-to-edge immersive display like VidVibe; channel list loading fixed (2-minute allowance per attempt plus an automatic retry instead of the 30-second cutoff that left the grid empty)
             - 1.0.0 first release: cross-platform live TV app built on the StreamHub splash, landing and streamer pages, pixel-for-pixel as designed, with HLS live playback, DStv/GOtv/global channel packages, phone/tablet/Android TV support and D-pad navigation
 
             Assets:

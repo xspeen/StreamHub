@@ -532,8 +532,9 @@ body.landscape .loc-inline{display:flex}
 .player.ui-hid .pl-top{opacity:0;transform:translateY(-10px);pointer-events:none}
 .player.ui-hid .pl-bar{opacity:0;transform:translateY(10px);pointer-events:none}
 .player.ui-hid #vid{cursor:none}
-/* loading veil */
-.player__ld{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:rgba(2,4,9,.55);z-index:6;transition:opacity .3s}
+/* loading veil: solid so the blurred-glow ("analog") background never bleeds
+   through while connecting - spinner + text only */
+.player__ld{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:#04060c;z-index:6;transition:opacity .3s}
 .player__ld.hid{opacity:0;pointer-events:none}
 .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--accent);border-radius:50%;animation:spin .85s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -887,111 +888,6 @@ body:not(.framed):not(.landscape) .body{max-width:620px;margin:0 auto;width:100%
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 
-/* ============ SPLASH SCREEN (every launch) ============ */
-.splash{
-  position:absolute;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:
-    radial-gradient(58% 42% at 50% 38%,rgba(0,229,200,.10),transparent 70%),
-    radial-gradient(46% 34% at 78% 82%,var(--glow2),transparent 70%),
-    linear-gradient(180deg,var(--bg2),var(--bg) 60%);
-  overflow:hidden;
-  transition:opacity .7s ease,transform .7s cubic-bezier(.22,.61,.36,1),visibility 0s linear .75s;
-}
-.splash.out{opacity:0;transform:scale(1.06);visibility:hidden;pointer-events:none}
-.splash::after{ /* slow sweeping sheen across the whole screen */
-  content:'';position:absolute;inset:-40%;pointer-events:none;
-  background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.05) 50%,transparent 58%);
-  animation:splashSheen 3.2s ease-in-out .4s 2;
-}
-@keyframes splashSheen{0%{transform:translateX(-46%)}55%,100%{transform:translateX(46%)}}
-.splash__row{display:flex;align-items:center;position:relative;z-index:2}
-.splash__logo{
-  width:clamp(64px,17vmin,96px);height:clamp(64px,17vmin,96px);flex:none;
-  filter:drop-shadow(0 10px 34px rgba(0,229,200,.35));
-  animation:splashPulse 2.4s ease-in-out infinite;
-  transition:transform .85s cubic-bezier(.22,.61,.36,1);
-}
-.splash__logo svg{width:100%;height:100%;display:block}
-@keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-/* phase 2: logo glides left as the app name slides in from the right */
-.splash.s2 .splash__logo{transform:translateX(clamp(-16px,-2.4vmin,-8px));animation:none}
-.splash__name{
-  display:flex;align-items:baseline;font-weight:900;letter-spacing:.14em;
-  font-size:clamp(30px,7.6vmin,52px);color:var(--text);white-space:nowrap;
-  max-width:0;opacity:0;transform:translateX(34px);filter:blur(6px);overflow:hidden;
-  transition:max-width .8s cubic-bezier(.22,.61,.36,1),opacity .8s ease,transform .8s cubic-bezier(.22,.61,.36,1),filter .8s ease,margin .8s cubic-bezier(.22,.61,.36,1);
-}
-.splash__name b{color:var(--accent)}
-.splash.s2 .splash__name{max-width:60vw;opacity:1;transform:none;filter:blur(0);margin-left:clamp(12px,3vmin,20px)}
-.splash__tag{
-  position:relative;z-index:2;margin-top:clamp(14px,3.4vmin,22px);
-  font-size:clamp(11px,2.6vmin,15px);font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--muted);
-  opacity:0;transform:translateY(10px);transition:opacity .7s ease,transform .7s ease;
-}
-.splash.s3 .splash__tag{opacity:1;transform:none}
-/* phase 4 (Netflix-style): name + tagline fade away, logo glides BACK TO
-   CENTRE and grows slightly - then the whole splash zoom-fades out */
-.splash.s4 .splash__name{max-width:0;opacity:0;margin-left:0;filter:blur(6px);transform:translateX(12px)}
-.splash.s4 .splash__logo{transform:scale(1.14)}
-.splash.s4 .splash__tag{opacity:0;transform:translateY(-8px)}
-
-/* ============ SETUP GUIDE (first launch landing page) ============ */
-.setup{
-  position:absolute;inset:0;z-index:1900;display:flex;flex-direction:column;
-  background:linear-gradient(180deg,var(--bg2),var(--bg) 55%);
-  opacity:0;visibility:hidden;pointer-events:none;transform:translateY(4%);
-  transition:opacity .6s ease,transform .7s cubic-bezier(.22,.61,.36,1),visibility 0s linear .7s;
-}
-.setup.open{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition:opacity .6s ease,transform .7s cubic-bezier(.22,.61,.36,1),visibility 0s}
-.setup.closing{opacity:0;transform:translateY(6%) scale(.985);pointer-events:none;transition:opacity .55s ease,transform .6s cubic-bezier(.22,.61,.36,1),visibility 0s linear .6s}
-.setup__scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;display:flex;flex-direction:column;overscroll-behavior:contain}
-.setup__scroll::-webkit-scrollbar{display:none}
-.setup__hero{min-height:50vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 34px) 24px 26px;position:relative;overflow:hidden}
-.setup__hero::before{content:'';position:absolute;inset:0;background:radial-gradient(52% 40% at 50% 26%,rgba(0,229,200,.14),transparent 70%);pointer-events:none}
-.setup__logo{width:clamp(50px,11vmin,68px);height:clamp(50px,11vmin,68px);filter:drop-shadow(0 10px 28px rgba(0,229,200,.4));animation:splashPulse 3s ease-in-out infinite;position:relative}
-.setup__logo svg{width:100%;height:100%}
-.setup__title{position:relative;margin-top:12px;font-size:clamp(20px,4.4vmin,28px);font-weight:900;letter-spacing:.1em}
-.setup__title b{color:var(--accent)}
-.setup__sub{position:relative;margin:8px auto 0;max-width:400px;color:var(--muted);font-size:clamp(12px,2.5vmin,13.5px);line-height:1.55}
-.setup__hint{position:relative;margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase}
-.setup__hint i{color:var(--accent);animation:splashBounce 1.8s ease-in-out infinite;font-size:11px}
-@keyframes splashBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
-.setup__stats{display:flex;justify-content:center;gap:clamp(14px,4vw,36px);padding:2px 20px 16px;flex-wrap:wrap}
-.setup__stat{text-align:center}
-.setup__stat b{display:block;font-size:clamp(15px,3.2vmin,20px);font-weight:900;color:var(--accent)}
-.setup__stat span{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
-.setup__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,84vw),1fr));gap:10px;padding:0 clamp(16px,4vw,36px);max-width:1020px;width:100%;margin:0 auto}
-.feat{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:15px;padding:13px 14px;display:flex;gap:12px;align-items:flex-start;opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .6s cubic-bezier(.22,.61,.36,1)}
-.feat.in{opacity:1;transform:none}
-.feat__ico{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-size:14.5px}
-.feat h4{margin:1px 0 4px;font-size:13px}
-.feat p{margin:0;color:var(--muted);font-size:11.5px;line-height:1.5}
-/* advertising showcase heroes: what StreamHub has, while the user scrolls */
-.setup__shows{display:flex;flex-direction:column;gap:10px;padding:14px 0 96px}
-.showcase{display:flex;gap:16px;align-items:center;padding:4px clamp(16px,4vw,36px);max-width:880px;margin:0 auto;width:100%;opacity:0;transform:translateY(22px);transition:opacity .55s ease,transform .6s cubic-bezier(.22,.61,.36,1)}
-.showcase.in{opacity:1;transform:none}
-.showcase:nth-child(even){flex-direction:row-reverse}
-.showcase__img{flex:1.15;min-width:0;aspect-ratio:16/10;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px rgba(0,0,0,.35)}
-.showcase__img img{width:100%;height:100%;object-fit:cover;display:block}
-.showcase__txt{flex:1;min-width:0}
-.showcase__kicker{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:5px}
-.showcase__txt h3{margin:0 0 5px;font-size:15px;font-weight:800}
-.showcase__txt p{margin:0;color:var(--muted);font-size:11.5px;line-height:1.55}
-@media (max-width:560px){.showcase{flex-direction:column!important;align-items:stretch;gap:9px;text-align:left}}
-.setup__btn{
-  border:0;cursor:pointer;border-radius:99px;padding:12px 30px;font-size:13.5px;font-weight:800;letter-spacing:.06em;
-  background:linear-gradient(135deg,var(--accent),#00b39a);color:var(--accent-ink);
-  box-shadow:0 10px 30px rgba(0,229,200,.3);transition:transform .3s ease,box-shadow .3s ease;
-}
-.setup__btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(0,229,200,.42)}
-.setup__btn:active{transform:translateY(0) scale(.98)}
-/* floating bottom navigation: Continue always in reach + Skip beside it */
-.setup__dock{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;justify-content:center;gap:12px;padding:30px 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(180deg,transparent,rgba(7,9,15,.86) 55%,var(--bg));pointer-events:none}
-.setup__dock .setup__btn{pointer-events:auto;padding:12px 30px;font-size:13.5px}
-.setup__skip{pointer-events:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:11px 20px;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:color .25s,border-color .25s}
-.setup__skip:hover{color:var(--text);border-color:var(--accent)}
-body.landscape .setup__hero{min-height:42vh}
-@media (max-width:360px){.setup__grid{grid-template-columns:1fr}.setup__dock{flex-wrap:wrap}}
 </style>
 </head>
 <body>
@@ -1427,93 +1323,6 @@ body.landscape .setup__hero{min-height:42vh}
       </div>
       <input type="file" id="setAvatarInput" accept="image/*" style="display:none">
       <input type="file" id="setBgInput" accept="image/*" style="display:none">
-    </section>
-
-    <!-- ================= SPLASH SCREEN (every launch) ================= -->
-    <div class="splash" id="splash" aria-label="StreamHub is launching">
-      <div class="splash__row">
-        <span class="splash__logo">
-          <svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect width="40" height="40" rx="10" fill="url(#lg3)"/><path d="M10 28L18 12H24L16 28H10Z" fill="#080a0f"/><path d="M18 28L26 12H32L24 28H18Z" fill="#080a0f" opacity=".45"/><defs><linearGradient id="lg3" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#00e5c8"/><stop offset="1" stop-color="#006b5e"/></linearGradient></defs></svg>
-        </span>
-        <span class="splash__name">STREAM<b>HUB</b></span>
-      </div>
-      <div class="splash__tag">Your World, Live</div>
-    </div>
-
-    <!-- ================= SETUP GUIDE (first launch landing page) ================= -->
-    <section class="setup" id="setup" aria-label="Welcome to StreamHub">
-      <div class="setup__scroll" id="setupScroll">
-        <div class="setup__hero">
-          <span class="setup__logo">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect width="40" height="40" rx="10" fill="url(#lg4)"/><path d="M10 28L18 12H24L16 28H10Z" fill="#080a0f"/><path d="M18 28L26 12H32L24 28H18Z" fill="#080a0f" opacity=".45"/><defs><linearGradient id="lg4" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#00e5c8"/><stop offset="1" stop-color="#006b5e"/></linearGradient></defs></svg>
-          </span>
-          <div class="setup__title">STREAM<b>HUB</b></div>
-          <p class="setup__sub">Every continent. Every match. Every show. Stream live TV from around the world in one clean, fast app — built for your phone, tablet, TV box and remote.</p>
-          <div class="setup__hint"><i class="fa-solid fa-chevron-down"></i>Scroll to explore</div>
-        </div>
-        <div class="setup__stats">
-          <div class="setup__stat"><b>190+</b><span>Countries</span></div>
-          <div class="setup__stat"><b>6</b><span>Categories</span></div>
-          <div class="setup__stat"><b>1080p</b><span>HD Boost</span></div>
-          <div class="setup__stat"><b>100%</b><span>On-device</span></div>
-        </div>
-        <div class="setup__grid" id="setupGrid">
-          <div class="feat">
-            <span class="feat__ico"><i class="fa-solid fa-earth-americas"></i></span>
-            <div><h4>Global Live TV</h4><p>Sports, movies, news, music and kids channels from more than 190 countries, sorted and deduplicated for you.</p></div>
-          </div>
-          <div class="feat">
-            <span class="feat__ico"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-            <div><h4>WireQ Quality Boost</h4><p>Blurry stream? The quality engine detects it and boosts the picture up to crisp 1080p automatically.</p></div>
-          </div>
-          <div class="feat">
-            <span class="feat__ico"><i class="fa-solid fa-clone"></i></span>
-            <div><h4>Picture-in-Picture</h4><p>Shrink any live channel into a floating glass bubble and keep browsing while the match keeps playing.</p></div>
-          </div>
-          <div class="feat">
-            <span class="feat__ico"><i class="fa-solid fa-child-reaching"></i></span>
-            <div><h4>Kids Safe Zone</h4><p>A dedicated cartoon world with its own hero and channels, so the little ones only see what they should.</p></div>
-          </div>
-          <div class="feat">
-            <span class="feat__ico"><i class="fa-solid fa-gamepad"></i></span>
-            <div><h4>Remote Ready</h4><p>Full D-pad navigation for TV boxes and air-mouse support — every button on StreamHub works without a touchscreen.</p></div>
-          </div>
-          <div class="feat">
-            <span class="feat__ico"><i class="fa-solid fa-shield-halved"></i></span>
-            <div><h4>Private by Design</h4><p>Profile, theme and preferences are stored only on your device. No accounts, no tracking, no ads.</p></div>
-          </div>
-        </div>
-        <div class="setup__shows">
-          <div class="showcase">
-            <div class="showcase__img"><img src="https://images.pexels.com/photos/1884574/pexels-photo-1884574.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="Live stadium" loading="lazy" decoding="async"></div>
-            <div class="showcase__txt">
-              <div class="showcase__kicker">Live Sports</div>
-              <h3>The match never waits</h3>
-              <p>Football, basketball, F1, boxing and more — live from stadiums around the world, with instant Picture-in-Picture so you never miss a minute while you browse.</p>
-            </div>
-          </div>
-          <div class="showcase">
-            <div class="showcase__img"><img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/0fad66061592.jpg" alt="Cinema quality" loading="lazy" decoding="async"></div>
-            <div class="showcase__txt">
-              <div class="showcase__kicker">Movies &amp; Series</div>
-              <h3>Cinema-grade picture</h3>
-              <p>24/7 movie channels with the WireQ quality engine watching every stream — low-resolution feeds are detected and boosted up to sharp 1080p automatically.</p>
-            </div>
-          </div>
-          <div class="showcase">
-            <div class="showcase__img"><img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/8e24328d251e.jpg" alt="Kids cartoons" loading="lazy" decoding="async"></div>
-            <div class="showcase__txt">
-              <div class="showcase__kicker">Kids &amp; Family</div>
-              <h3>A safe world for the little ones</h3>
-              <p>Mickey, SpongeBob, Ninja Turtles, PJ Masks and more — a dedicated Kids zone with its own hero, channels and cartoons, far away from the grown-ups' content.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="setup__dock">
-        <button class="setup__btn" id="setupGo"><i class="fa-solid fa-play"></i>&nbsp; Continue</button>
-        <button class="setup__skip" id="setupSkip">Skip</button>
-      </div>
     </section>
 
     <div class="toast" id="toast" role="status"></div>
@@ -2597,22 +2406,17 @@ var vid=$('vid');
 function isPlayerOpen(){return $('player').classList.contains('open')}
 function openPlayer(ch){
   if(!ch||!ch.url){toast('No stream URL available');return}
-  var switching=isPlayerOpen();
   currentUrl=ch.url;
   $('playerName').textContent=ch.name;
   $('player').classList.remove('ui-hid');
   $('player').setAttribute('aria-hidden','false');
   $('player').classList.add('open');
   document.querySelector('.app').classList.add('playing');
-  if(switching){
-    /* seamless zapping: keep the last frame, no full-page veil */
-    hideLd();
-    $('plBufTxt').textContent='Switching to '+ch.name;
-    $('plBuf').classList.add('on');
-  }else{
-    $('plBuf').classList.remove('on');
-    $('playerLd').classList.remove('hid');
-  }
+  /* Clean connect state on EVERY open (fresh tap or channel zapping): the
+     "Connecting to stream..." veil stays up until the new feed is really
+     playing, instead of revealing the smeary blurred-glow background. */
+  $('plBuf').classList.remove('on');
+  $('playerLd').classList.remove('hid');
   stopHero();
   if(drawerOpen)refreshPlayingMarks();
   setMetaColor('#04060c');
@@ -2622,12 +2426,24 @@ function openPlayer(ch){
 function hideLd(){$('playerLd').classList.add('hid')}
 function pillOff(){$('plBuf').classList.remove('on')}
 function destroyStream(){if(hls){try{hls.destroy()}catch(e){}hls=null}}
+var ldGuard=0;
 /* tuned for fewer stalls / less buffering on live edge */
 function startStream(url){
   destroyStream();
+  clearTimeout(ldGuard);
   retries=0;
   vid.removeAttribute('src');
   try{vid.load()}catch(e){}
+  /* safety net: if neither 'playing' nor a fatal error arrives, drop the
+     veil after 20s and show "Still connecting..." instead of an endless
+     loading screen on a dead stream */
+  ldGuard=setTimeout(function(){
+    if(isPlayerOpen()&&!$('playerLd').classList.contains('hid')){
+      hideLd();
+      $('plBufTxt').textContent='Still connecting...';
+      $('plBuf').classList.add('on');
+    }
+  },20000);
   if(typeof Hls!=='undefined'&&Hls.isSupported()){
     hls=new Hls({
       enableWorker:true,
@@ -2651,7 +2467,8 @@ function startStream(url){
     hls.loadSource(url);
     hls.attachMedia(vid);
     hls.on(Hls.Events.MANIFEST_PARSED,function(){
-      hideLd();
+      /* keep the veil up: hideLd() fires on the video's first 'playing'
+         frame, so "Connecting to stream..." shows until real playback */
       pillOff();
       buildQuality();
       applyStreamQuality();
@@ -2681,7 +2498,7 @@ function startStream(url){
     vid.src=url;
     vid.addEventListener('loadedmetadata',function h(){
       vid.removeEventListener('loadedmetadata',h);
-      hideLd();
+      /* veil lifts on 'playing' (first real frame), not on metadata */
       pillOff();
       buildQuality();
       applyStreamQuality();
@@ -2744,6 +2561,8 @@ function glowLoop(t){
   glowRAF=requestAnimationFrame(glowLoop);
 }
 vid.addEventListener('playing',glowStart);
+/* the connect veil lifts only once frames are really rendering */
+vid.addEventListener('playing',hideLd);
 /* buffering pill: subtle inline indicator (never over the first-load veil) */
 vid.addEventListener('waiting',function(){
   if(isPlayerOpen()&&$('playerLd').classList.contains('hid')){
@@ -3587,50 +3406,7 @@ layoutSync=function(){
   }
 })();
 
-/* ================= SPLASH + SETUP GUIDE (launch flow) =================
-   0s    logo breathes in the centre for 3 seconds
-   3s    logo glides LEFT, "STREAMHUB" slides in from the right (un-blurs)
-   4.2s  tagline rises underneath
-   5.5s  Netflix-style beat: name + tagline fade away, the logo glides
-         BACK TO THE CENTRE and grows slightly
-   6.8s  the whole splash zoom-fades out
-         - first launch  -> setup guide landing page (scroll, floating
-           Continue dock -> app)
-         - repeat launch -> straight into the app                       */
-(function bootFlow(){
-  var sp=$('splash'),su=$('setup');
-  if(!sp||!su)return;
-  var done=false;
-  try{done=localStorage.getItem('sh-setup')==='done'}catch(e){}
-  var finishSetup=function(){
-    try{localStorage.setItem('sh-setup','done')}catch(e){}
-    su.classList.add('closing');
-    setTimeout(function(){su.classList.remove('open','closing')},620);
-  };
-  var go=$('setupGo'),skip=$('setupSkip');
-  if(go)go.addEventListener('click',finishSetup);
-  if(skip)skip.addEventListener('click',finishSetup);
-  /* feature cards and showcase heroes fade up one by one while scrolling */
-  var cards=document.querySelectorAll('.feat,.showcase');
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){
-      es.forEach(function(en){
-        if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target)}
-      });
-    },{root:$('#setupScroll'),threshold:.18});
-    Array.prototype.forEach.call(cards,function(c){io.observe(c)});
-  }else{
-    Array.prototype.forEach.call(cards,function(c){c.classList.add('in')});
-  }
-  setTimeout(function(){sp.classList.add('s2')},3000);
-  setTimeout(function(){sp.classList.add('s3')},4200);
-  setTimeout(function(){sp.classList.add('s4')},5500); /* logo back to centre */
-  setTimeout(function(){
-    sp.classList.add('out');
-    if(!done)su.classList.add('open'); /* landing page reveals underneath */
-  },6800);
-  setTimeout(function(){sp.style.display='none'},7800);
-})();
+
 </script>
 </body>
 </html>
