@@ -21,9 +21,31 @@ Verify a download: `sha256sum -c SHA256SUMS.txt`
 3. Updates: install over the previous version - same signing key, no
    uninstall needed.
 
-Android TV: copy the APK to the device (USB/adb) and install it; the app
-registers a leanback launcher entry with a TV banner and full D-pad
-navigation.
+### Android TV - no computer or adb needed
+
+The APK installs on any **Android TV / Google TV / Fire TV** box like a
+normal app (Samsung Tizen and LG webOS TVs cannot run APKs at all).
+Pick whichever method is easiest:
+
+1. **From your phone (easiest)** - install the free **Send Files to TV**
+   app on both the phone and the TV (both on the Play Store), send
+   `StreamHub-<version>.apk` from the phone's Download folder to the TV
+   over Wi-Fi, then open it on the TV and confirm the install.
+2. **USB drive** - copy the APK to a flash drive, plug it into the TV,
+   and open it with any file manager (X-plore, File Commander, ...;
+   install one from the Play Store if the TV has none).
+3. **Directly on the TV** - install the free **Downloader** app
+   (AFTVnews), open the Releases page in its built-in browser,
+   download the APK on the TV and install it.
+4. **adb** (optional, for advanced users):
+   `adb install StreamHub-<version>.apk`
+
+First-time sideload: allow **Settings > Apps > Security & Restrictions >
+Unknown sources**. On Android TV 11+ this is granted per app - enable
+"install unknown apps" for your file manager or Downloader.
+
+The app registers a leanback launcher entry with a TV banner and full
+D-pad navigation.
 
 Troubleshooting:
 

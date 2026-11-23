@@ -288,7 +288,7 @@ jobs:
             1. Download the APK to your Android device and open it.
             2. Allow installs from unknown sources when prompted.
             3. Updates install over the previous version (same key, no uninstall needed).
-            - Android TV: copy the APK to the device or `adb install StreamHub-${{ needs.version.outputs.version }}.apk`.
+            - Android TV - no computer or adb needed: send the APK from your phone with the free "Send Files to TV" app, copy it to a USB drive and open it with a file manager, or download it on the TV with the "Downloader" app. Advanced: `adb install StreamHub-${{ needs.version.outputs.version }}.apk`. Full steps in INSTALL.md.
             - "problem parsing the package" / "app not installed": check the file size against `SHA256SUMS.txt` - a truncated download is the usual cause. Signature error while updating: uninstall the old build first.
 
             **iOS - iPhone / iPad**
