@@ -271,6 +271,12 @@ jobs:
           tag_name: v${{ needs.version.outputs.version }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+          files: |
+            release-artifacts/StreamHub-${{ needs.version.outputs.version }}.apk
+            release-artifacts/StreamHub-${{ needs.version.outputs.version }}-ios.ipa
+            release-artifacts/StreamHub-${{ needs.version.outputs.version }}-windows-x64-setup.exe
+            release-artifacts/StreamHub-${{ needs.version.outputs.version }}-src.zip
+            release-artifacts/SHA256SUMS.txt
           body: |
             StreamHub v${{ needs.version.outputs.version }}
 
