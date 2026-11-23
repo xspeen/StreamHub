@@ -1,0 +1,11 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="48" height="48" role="img" aria-label="StreamHub">
+  <defs>
+    <linearGradient id="lg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00e5c8"/>
+      <stop offset="1" stop-color="#005a4e"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="13" fill="url(#lg)"/>
+  <path d="M12 34L21 14H28.5L19.5 34H12Z" fill="#04120f"/>
+  <path d="M21 34L30 14H37.5L28.5 34H21Z" fill="#04120f" opacity=".42"/>
+</svg>
