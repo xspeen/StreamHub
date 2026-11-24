@@ -107,10 +107,13 @@ body{font-family:'Outfit',system-ui,-apple-system,sans-serif;-webkit-font-smooth
   margin-left:clamp(12px,2.8vmin,20px);
 }
 
-/* tagline rises up */
+/* tagline rises up — absolutely placed so it can never pull the centred
+   logo/wordmark row off the true centre. It used to sit in flex flow while
+   still transparent, which left the logo ~20px above centre on a 1080p TV. */
 .splash__tag{
-  position:relative;z-index:2;
-  margin-top:clamp(14px,3vmin,22px);
+  position:absolute;left:0;right:0;top:50%;z-index:2;
+  margin-top:calc(clamp(60px,15vmin,88px)/2 + clamp(14px,3vmin,22px));
+  text-align:center;
   font-size:clamp(10px,2.2vmin,14px);font-weight:600;
   letter-spacing:.38em;text-transform:uppercase;color:var(--muted);
   opacity:0;transform:translateY(10px);

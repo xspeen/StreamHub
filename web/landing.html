@@ -10,6 +10,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script>
+/* Android TV / leanback detection. A TV has no touchscreen, so
+   maxTouchPoints is 0 — combined with the Android UA (or a TV brand token)
+   that identifies a TV box at parse time, before first paint. Setting
+   data-ui="tv" switches on the 10-foot layout and the low-power paint path. */
+window.SH_TV=(function(){
+  var ua=navigator.userAgent||'',tv=false;
+  try{
+    var f=localStorage.getItem('sh-tv');
+    if(f==='1')tv=true;
+    else if(f==='0')tv=false;
+    else tv=/Android TV|Leanback|SmartTV|SMART-TV|BRAVIA|Apple TV|Fire TV|Android; *TV|AFT[A-Z0-9]{2}/i.test(ua)
+          ||(/Android/i.test(ua)&&(navigator.maxTouchPoints|0)===0);
+  }catch(e){}
+  if(tv)document.documentElement.setAttribute('data-ui','tv');
+  return tv;
+})();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;scroll-padding-top:80px;-webkit-text-size-adjust:100%}
@@ -468,7 +486,7 @@ html[data-theme="light"] .feat::after{
   pointer-events:none;
   transition:opacity .45s var(--ease),transform .45s var(--ease);
 }
-.dock--hidden{opacity:0;transform:translateY(130%)}
+.dock--hidden{opacity:0;transform:translateY(130%);pointer-events:none}
 .dock__panel{
   pointer-events:auto;position:relative;
   display:flex;align-items:center;gap:8px;
@@ -754,6 +772,25 @@ html[data-theme="light"] .onboard{background:rgba(238,244,252,.55)}
   html{scroll-behavior:auto}
   [data-reveal]{opacity:1;transform:none;filter:none}
 }
+
+/* ═══ TV / WEAK-GPU PAINT PATH ═══
+   TV boxes composite on a small GPU and re-evaluate every backdrop-filter on
+   each frame. Stacking ~15 glass blurs plus a blend-mode grain and two
+   70vmax blurred orbs is what makes the interface feel sticky on a TV.
+   The glass look still reads on its solid gradients without the blur, so the
+   whole set is switched off when the head script tags the page data-ui="tv". */
+html[data-ui="tv"] .app::after{display:none}
+html[data-ui="tv"] *,
+html[data-ui="tv"] *::before,
+html[data-ui="tv"] *::after{
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+html[data-ui="tv"] .ambient::before,
+html[data-ui="tv"] .ambient::after,
+html[data-ui="tv"] .cta .blob--1,
+html[data-ui="tv"] .cta .blob--2{filter:none !important;animation:none !important}
+html[data-ui="tv"] .marquee__track{animation:none !important}
 </style>
 </head>
 <body>
@@ -1287,14 +1324,60 @@ document.querySelectorAll('[data-count]').forEach(function(el){statIo.observe(el
 /* ── D-PAD / REMOTE SPATIAL NAVIGATION (TV boxes & air-mouse) ── */
 (function(){
   var SEL='button,a[href]';
+  /* The profile menu and the onboarding wizard are hidden with opacity, not
+     display:none, so their buttons still report a real bounding rect. A plain
+     rect test therefore lets the D-pad walk into those invisible layers: focus
+     moves somewhere the user cannot see and the remote looks dead. Walk the
+     ancestor chain and reject anything painted out. */
   function visible(el){
     if(el.disabled) return false;
+    /* display:none on an ancestor is the one thing that really hides a whole
+       subtree, so that is walked. pointer-events and visibility are NOT walked:
+       they are resolved per element, and a descendant re-enabling
+       pointer-events (the dock panel does exactly that under a
+       pointer-events:none dock) must keep its controls reachable. */
+    var n=el.parentElement;
+    while(n&&n.nodeType===1){
+      if(window.getComputedStyle(n).display==='none') return false;
+      n=n.parentElement;
+    }
+    var cs=window.getComputedStyle(el);
+    if(cs.visibility==='hidden'||cs.pointerEvents==='none') return false;
+    var ob=document.getElementById('onboard');
+    if(ob&&!ob.classList.contains('open')&&ob.contains(el)) return false;
+    var cm=document.getElementById('capsMenu');
+    if(cm&&!cm.classList.contains('open')&&cm.contains(el)) return false;
+    /* the sticky dock fades and slides away while the bottom CTA is on screen */
+    var dk=document.getElementById('dock');
+    if(dk&&dk.classList.contains('dock--hidden')&&dk.contains(el)) return false;
+    /* No viewport test. This is one long page whose middle sections contain
+       no controls at all, so limiting candidates to the current screen left
+       the D-pad with nowhere to go — it parked on the fixed bottom dock and
+       never moved again. focusEl() scrolls each target into view instead. */
     var r=el.getBoundingClientRect();
-    return r.width>0&&r.height>0&&r.bottom>-40&&r.top<window.innerHeight+40;
+    return r.width>0&&r.height>0;
   }
   function center(el){
     var r=el.getBoundingClientRect();
     return {x:r.left+r.width/2,y:r.top+r.height/2};
+  }
+  /* Focus has to scroll the target into view. This page is long, so without
+     it the ring happily moves to a button below the fold and nothing appears
+     to happen on screen. */
+  function focusEl(el){
+    if(!el) return;
+    try{el.focus({preventScroll:true})}catch(err){try{el.focus()}catch(e2){}}
+    try{el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'})}catch(err){}
+  }
+  /* One screen of manual travel. Used when no control is within reach in the
+     pressed direction, so the D-pad reads the page instead of doing nothing. */
+  function scrollPage(axis,key){
+    var sc=document.scrollingElement||document.documentElement;
+    var step=axis==='y'?window.innerHeight*0.8:window.innerWidth*0.8;
+    var sx=0,sy=0;
+    if(axis==='y') sy=(key==='ArrowDown')?step:-step;
+    else sx=(key==='ArrowRight')?step:-step;
+    try{sc.scrollBy({top:sy,left:sx,behavior:'smooth'})}catch(err){sc.scrollTop+=sy;sc.scrollLeft+=sx}
   }
   document.addEventListener('keydown',function(e){
     var axis=e.key==='ArrowDown'||e.key==='ArrowUp'?'y':(e.key==='ArrowLeft'||e.key==='ArrowRight'?'x':null);
@@ -1302,9 +1385,46 @@ document.querySelectorAll('[data-count]').forEach(function(el){statIo.observe(el
     var obEl=document.getElementById('onboard');
     var scope=(obEl&&obEl.classList.contains('open'))?obEl:document;
     var els=[].slice.call(scope.querySelectorAll(SEL)).filter(visible);
+    if(!els.length) return;
     var cur=document.activeElement;
-    if(!cur||els.indexOf(cur)===-1){e.preventDefault();els[0]&&els[0].focus();return}
-    var c=center(cur),best=null,bd=Infinity;
+    if(!cur||els.indexOf(cur)===-1){
+      e.preventDefault();
+      /* land on the hero call-to-action rather than the first button in DOM
+         order, which is the small logo pinned in the corner */
+      var pref=document.getElementById('heroCta');
+      if(pref&&els.indexOf(pref)>=0){focusEl(pref);return}
+      var cx=window.innerWidth/2,cy=window.innerHeight/2,bn=null,bd=Infinity;
+      els.forEach(function(el){
+        var p=center(el),d=(p.x-cx)*(p.x-cx)+(p.y-cy)*(p.y-cy);
+        if(d<bd){bd=d;bn=el}
+      });
+      focusEl(bn);
+      return;
+    }
+    var c=center(cur),cr=cur.getBoundingClientRect();
+    /* If focus scrolled out of view along with the content, do not score the
+       move from an off-screen position — that flings the ring somewhere the
+       user cannot see. Re-anchor to a control that is actually on screen. */
+    if(cr.bottom<0||cr.top>window.innerHeight||cr.right<0||cr.left>window.innerWidth){
+      var inView=els.filter(function(el){
+        var r=el.getBoundingClientRect();
+        return r.bottom>0&&r.top<window.innerHeight&&r.right>0&&r.left<window.innerWidth;
+      });
+      if(!inView.length){
+        /* nothing at all on screen: just move the page one step */
+        e.preventDefault();
+        scrollPage(axis,e.key);
+        return;
+      }
+      var ax=window.innerWidth/2,ay=window.innerHeight/2,an=null,ad=Infinity;
+      inView.forEach(function(el){
+        var p=center(el),d=(p.x-ax)*(p.x-ax)+(p.y-ay)*(p.y-ay);
+        if(d<ad){ad=d;an=el}
+      });
+      focusEl(an);
+      cur=an;c=center(cur);
+    }
+    var best=null,bd=Infinity;
     els.forEach(function(el){
       if(el===cur) return;
       var p=center(el),dx=p.x-c.x,dy=p.y-c.y;
@@ -1315,7 +1435,35 @@ document.querySelectorAll('[data-count]').forEach(function(el){statIo.observe(el
       var score=Math.abs(main)+cross*2.2;
       if(score<bd){bd=score;best=el}
     });
-    if(best){e.preventDefault();best.focus()}
+    if(best){
+      var bp=center(best);
+      var dist=axis==='y'?Math.abs(bp.y-c.y):Math.abs(bp.x-c.x);
+      var limit=axis==='y'?window.innerHeight*0.9:window.innerWidth*0.9;
+      if(dist>limit){
+        /* Nothing is within a screen in that direction — the middle sections
+           of this page hold no controls at all. Scrolling one screen keeps
+           the user reading the content instead of leaping focus from the hero
+           straight to the footer; the ring returns as soon as a control
+           comes within reach. */
+        e.preventDefault();
+        scrollPage(axis,e.key);
+        return;
+      }
+      e.preventDefault();focusEl(best);
+    }
+  });
+  /* OK/Enter must activate the focused control. Android TV remotes send a
+     centre key that the WebView does not always turn into a click, so do it
+     explicitly here for anything that is not already a native button. */
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ') return;
+    var t=e.target;
+    if(t&&/^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+    var el=document.activeElement;
+    if(!el||el===document.body||el===document.documentElement) return;
+    if(el.tagName==='BUTTON'||el.tagName==='A') return;
+    e.preventDefault();
+    if(typeof el.click==='function') el.click();
   });
 })();
 

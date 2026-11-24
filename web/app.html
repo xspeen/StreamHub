@@ -6,6 +6,23 @@
 <meta name="theme-color" content="#07090f">
 <title>StreamHub - Global Live TV</title>
 <script>try{var _t=localStorage.getItem('sh-theme');if(_t)document.documentElement.setAttribute('data-theme',_t)}catch(e){}</script>
+<script>
+/* Android TV / leanback detection, run before first paint so the 10-foot
+   layout and the cheap paint path are active from the very first frame.
+   A TV has no touchscreen (maxTouchPoints 0), which is the reliable tell. */
+window.SH_TV=(function(){
+  var ua=navigator.userAgent||'',tv=false;
+  try{
+    var f=localStorage.getItem('sh-tv');
+    if(f==='1')tv=true;
+    else if(f==='0')tv=false;
+    else tv=/Android TV|Leanback|SmartTV|SMART-TV|BRAVIA|Apple TV|Fire TV|Android; *TV|AFT[A-Z0-9]{2}/i.test(ua)
+          ||(/Android/i.test(ua)&&(navigator.maxTouchPoints|0)===0);
+  }catch(e){}
+  if(tv)document.documentElement.setAttribute('data-ui','tv');
+  return tv;
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -887,6 +904,26 @@ body:not(.framed):not(.landscape) .body{max-width:620px;margin:0 auto;width:100%
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ═══ TV / WEAK-GPU PAINT PATH ═══
+   TV boxes composite on a small GPU, and every backdrop-filter in view is
+   re-evaluated on each frame. Two costs dominate there and both show up as
+   stutter: the ~25 stacked glass blurs plus the blend-mode grain, and
+   .pl-glow — a full-screen canvas that mirrors the live video through a
+   56px blur, i.e. a re-blur of the whole background for every decoded frame,
+   which is exactly when playback starts to stick. Both are switched off when
+   the head script tags the page data-ui="tv"; the glass look still reads on
+   its solid gradients without the blur. */
+html[data-ui="tv"] .nz::after{display:none}
+html[data-ui="tv"] .pl-glow{display:none}
+html[data-ui="tv"] *,
+html[data-ui="tv"] *::before,
+html[data-ui="tv"] *::after{
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+html[data-ui="tv"] .ambient::before,
+html[data-ui="tv"] .ambient::after{filter:none !important;animation:none !important}
 
 </style>
 </head>
@@ -2880,8 +2917,12 @@ $('setNameSave').addEventListener('click',function(){
 });
 
 /* ================= LOOK & FEEL ENGINE ================= */
-var LOOK={accent:'teal',bg:'aurora',bgImg:'',blur:26,text:'normal',ui:'standard'};
+/* ui defaults to the 10-foot layout on a leanback device; uiSet records that
+   the user picked a mode themselves, so an explicit Standard choice made on a
+   TV is still honoured on every later launch. */
+var LOOK={accent:'teal',bg:'aurora',bgImg:'',blur:26,text:'normal',ui:window.SH_TV?'tv':'standard',uiSet:0};
 try{var _l=JSON.parse(localStorage.getItem('sh-look')||'null');if(_l){for(var _k in LOOK){if(_l[_k]!=null)LOOK[_k]=_l[_k]}}}catch(e){}
+if(!LOOK.uiSet&&window.SH_TV)LOOK.ui='tv';
 var ACCENTS={
   teal:['#00e5c8','#00201c'],blue:['#4f9cff','#001a30'],violet:['#9d7bff','#170033'],
   magenta:['#ff5fa8','#2e0016'],amber:['#ffb020','#2b1c00'],lime:['#8ce04a','#132a09']
@@ -3071,7 +3112,7 @@ $('setPages').addEventListener('click',function(e){
     seg.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b===segB)});
     if(id==='segTheme'){applyTheme(v);markLookUI()}
     else if(id==='segText'){LOOK.text=v;applyLook();saveLook();toast('Text size: '+segB.textContent)}
-    else if(id==='segUI'){LOOK.ui=v;applyLook();saveLook();toast(v==='tv'?'TV 10-foot UI on':'Standard UI')}
+    else if(id==='segUI'){LOOK.ui=v;LOOK.uiSet=1;applyLook();saveLook();toast(v==='tv'?'TV 10-foot UI on':'Standard UI')}
     else if(id==='segQual'){STREAM.qual=parseInt(v,10);saveStream();markLookUI();applyStreamQuality();toast(STREAM.qual<0?'Quality: Auto':'Quality capped at '+STREAM.qual+'p')}
     else if(id==='segBuf'){STREAM.buf=v;applyBuf();saveStream();toast('Buffering: '+segB.textContent)}
     else if(id==='segPip'){STREAM.pip=v;saveStream();pipSnapTo(v);toast('Mini player corner set')}
